@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title><%= course.course_name %> - Levels</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    h1 { color: #333; }
+    .level-list { list-style-type: none; padding: 0; }
+    .level-list li { margin: 10px 0; padding: 10px; background: #f0f0f0; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; }
+    .level-list a { text-decoration: none; background: #007bff; color: white; padding: 5px 10px; border-radius: 4px; }
+    .level-list a:hover { background: #0056b3; }
+  </style>
+</head>
+<body>
+
+  <h1><%= course.course_name %></h1>
+  <p>Levels:</p>
+
+  <ul class="level-list">
+    <% for (let i = 1; i <= levels; i++) { %>
+      <li>
+        <span>Level <%= i %> - <%= levelTopics[i] || "No topic assigned" %></span>
+        <a href="/exam/<%= course.id %>/<%= i %>">Take Exam</a>
+      </li>
+    <% } %>
+  </ul>
+
+  <br>
+  <a href="/student-courses">Back to Courses</a>
+
+</body>
+</html>
