@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Add Question (Teacher)</title>
+</head>
+<body>
+  <h1>Add Question</h1>
+  <form action="/teacher/add-question" method="POST">
+    <label>Course:</label>
+    <select name="course_id" required>
+      <% courses.forEach(c => { %>
+        <option value="<%= c.id %>"><%= c.course_name %></option>
+      <% }) %>
+    </select><br><br>
+
+    <label>Level:</label>
+    <select name="level" required>
+      <% for(let i=1; i<=10; i++){ %>
+        <option value="<%= i %>"><%= i %></option>
+      <% } %>
+    </select><br><br>
+
+    <label>Question Type:</label>
+    <select name="question_type" required>
+      <option value="mcq">MCQ</option>
+      <option value="coding">Coding</option>
+    </select><br><br>
+
+    <label>Question Text:</label><br>
+    <textarea name="question_text"></textarea><br><br>
+
+    <label>Option 1:</label><input type="text" name="option1"><br>
+    <label>Option 2:</label><input type="text" name="option2"><br>
+    <label>Option 3:</label><input type="text" name="option3"><br>
+    <label>Option 4:</label><input type="text" name="option4"><br>
+    <label>Correct Option (1-4):</label><input type="number" name="correct"><br><br>
+
+    <button type="submit">Add Question</button>
+  </form>
+  <br>
+  <a href="/teacher-dashboard">Back to Dashboard</a>
+</body>
+</html>

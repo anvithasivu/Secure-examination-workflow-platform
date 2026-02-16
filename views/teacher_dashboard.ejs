@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Teacher Dashboard</title>
+  <style>
+    body { font-family: Arial; background: #f5f7fa; padding: 20px; }
+    h1 { color: #333; }
+    a { text-decoration: none; padding: 10px 15px; margin-right: 10px; background: #007bff; color: white; border-radius: 5px; }
+    a:hover { background: #0056b3; }
+  </style>
+</head>
+<body>
+  <h1>Welcome, <%= user.username %> (Teacher)</h1>
+  <a href="/add-question">Add Question</a>
+  <a href="/view-questions">View Questions</a>
+  <a href="/logout">Logout</a>
+</body>
+</html>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Student Results</title>
+  <style>
+    table { border-collapse: collapse; width: 80%; margin: 20px auto; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+    th { background-color: #007BFF; color: white; }
+  </style>
+</head>
+<body>
+  <h1>Student Results</h1>
+  <table>
+    <tr>
+      <th>Student</th>
+      <th>Course</th>
+      <th>Level</th>
+      <th>Score</th>
+    </tr>
+    <% results.forEach(r => { %>
+      <tr>
+        <td><%= r.student_name %></td>
+        <td><%= r.course_name %></td>
+        <td><%= r.level %></td>
+        <td><%= r.score %></td>
+      </tr>
+    <% }) %>
+  </table>
+  <a href="/teacher-dashboard">Back to Dashboard</a>
+</body>
+</html>

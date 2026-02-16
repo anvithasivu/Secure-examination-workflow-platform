@@ -2,154 +2,57 @@
 <html>
 <head>
   <title>Add Question</title>
-  <style>
-    body {
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f0f2f5;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      min-height: 100vh;
-    }
-
-    .container {
-      background-color: #fff;
-      padding: 30px 40px;
-      margin-top: 50px;
-      border-radius: 12px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.1);
-      width: 500px;
-    }
-
-    h1 {
-      text-align: center;
-      margin-bottom: 30px;
-      color: #333;
-    }
-
-    label {
-      font-weight: bold;
-      display: block;
-      margin-bottom: 6px;
-      color: #555;
-    }
-
-    select, input[type=text], input[type=number], textarea, button {
-      width: 100%;
-      padding: 10px 12px;
-      margin-bottom: 15px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 16px;
-      transition: 0.2s;
-    }
-
-    select:focus, input:focus, textarea:focus {
-      border-color: #2196F3;
-      outline: none;
-    }
-
-    textarea {
-      resize: vertical;
-      min-height: 60px;
-    }
-
-    button {
-      background-color: #4CAF50;
-      color: #fff;
-      font-weight: bold;
-      cursor: pointer;
-      border: none;
-      transition: 0.3s;
-    }
-
-    button:hover {
-      background-color: #45a049;
-    }
-
-    .back-link {
-      text-align: center;
-      display: block;
-      margin-top: 15px;
-      text-decoration: none;
-      color: #2196F3;
-      font-weight: bold;
-    }
-
-    .back-link:hover {
-      text-decoration: underline;
-    }
-
-    .fields {
-      margin-top: 10px;
-    }
-  </style>
-
-  <script>
-    function toggleFields() {
-      const type = document.getElementById("question_type").value;
-      document.getElementById("mcq_fields").style.display = (type === 'mcq') ? 'block' : 'none';
-      document.getElementById("coding_fields").style.display = (type === 'coding') ? 'block' : 'none';
-    }
-  </script>
 </head>
 <body>
+<h1>Add Question</h1>
+<form action="/add-question" method="POST">
+  <label>Course:</label>
+  <select name="course_id" required>
+    <% courses.forEach(c=>{ %>
+      <option value="<%=c.id%>"><%=c.course_name%></option>
+    <% }) %>
+  </select><br><br>
 
-  <div class="container">
-    <h1>Add Question</h1>
+  <label>Level:</label>
+  <select name="level" required>
+    <% for(let i=1;i<=10;i++){ %>
+      <option value="<%=i%>"><%=i%></option>
+    <% } %>
+  </select><br><br>
 
-    <form action="/add-question" method="POST">
+  <label>Question Type:</label>
+  <select id="question_type" name="question_type" required>
+    <option value="">--Select--</option>
+    <option value="mcq">MCQ</option>
+    <option value="coding">Coding</option>
+  </select><br><br>
 
-      <label>Course:</label>
-      <select name="course_id" required>
-        <% courses.forEach(c => { %>
-          <option value="<%= c.id %>"><%= c.course_name %></option>
-        <% }) %>
-      </select>
-
-      <label>Level:</label>
-      <select name="level" required>
-        <% for(let i=1; i<=10; i++){ %>
-          <option value="<%= i %>"><%= i %></option>
-        <% } %>
-      </select>
-
-      <label>Question Type:</label>
-      <select id="question_type" name="question_type" onchange="toggleFields()" required>
-        <option value="">--Select--</option>
-        <option value="mcq">MCQ</option>
-        <option value="coding">Coding</option>
-      </select>
-
-      <!-- MCQ Fields -->
-      <div id="mcq_fields" class="fields" style="display:none;">
-        <label>Question:</label>
-        <textarea name="question" placeholder="Enter your MCQ question"></textarea>
-
-        <input type="text" name="option1" placeholder="Option 1">
-        <input type="text" name="option2" placeholder="Option 2">
-        <input type="text" name="option3" placeholder="Option 3">
-        <input type="text" name="option4" placeholder="Option 4">
-
-        <input type="number" name="correct" min="1" max="4" placeholder="Correct Option (1-4)">
-      </div>
-
-      <!-- Coding Fields -->
-      <div id="coding_fields" class="fields" style="display:none;">
-        <label>Coding Question:</label>
-        <textarea name="coding_question" placeholder="Enter your coding question"></textarea>
-
-        <label>Starter Code:</label>
-        <textarea name="starter_code" placeholder="Enter starter code (optional)"></textarea>
-      </div>
-
-      <button type="submit">Add Question</button>
-    </form>
-
-    <a href="/admin" class="back-link">Back to Dashboard</a>
+  <div id="mcq_fields">
+    <label>Question:</label><textarea name="question"></textarea><br>
+    <input type="text" name="option1" placeholder="Option1"><br>
+    <input type="text" name="option2" placeholder="Option2"><br>
+    <input type="text" name="option3" placeholder="Option3"><br>
+    <input type="text" name="option4" placeholder="Option4"><br>
+    <input type="number" name="correct" min="1" max="4" placeholder="Correct Option"><br>
   </div>
 
+  <div id="coding_fields">
+    <label>Coding Question:</label><textarea name="coding_question"></textarea><br>
+    <label>Starter Code:</label><textarea name="starter_code"></textarea><br>
+  </div>
+
+  <button type="submit">Add Question</button>
+</form>
+<a href="/teacher-dashboard">Back to Dashboard</a>
+
+<script>
+  const qType = document.getElementById("question_type");
+  const mcqFields = document.getElementById("mcq_fields");
+  const codingFields = document.getElementById("coding_fields");
+  qType.addEventListener("change", function() {
+    mcqFields.style.display = qType.value === "mcq" ? "block" : "none";
+    codingFields.style.display = qType.value === "coding" ? "block" : "none";
+  });
+</script>
 </body>
 </html>
