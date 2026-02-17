@@ -1,32 +1,38 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title><%= course.course_name %> - Levels</title>
+  <title><%= course.course_name %> Levels</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
+    body { font-family: Arial, sans-serif; background: #f9f9f9; margin: 20px; }
     h1 { color: #333; }
-    .level-list { list-style-type: none; padding: 0; }
-    .level-list li { margin: 10px 0; padding: 10px; background: #f0f0f0; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; }
-    .level-list a { text-decoration: none; background: #007bff; color: white; padding: 5px 10px; border-radius: 4px; }
-    .level-list a:hover { background: #0056b3; }
+    ul.level-list { list-style: none; padding: 0; display: flex; flex-wrap: wrap; }
+    ul.level-list li {
+      background: white;
+      margin: 10px;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      text-align: center;
+      width: 180px;
+    }
+    a.take-exam { display: inline-block; margin-top: 10px; padding: 6px 12px; background: #007BFF; color: white; border-radius: 5px; text-decoration: none; }
+    a.take-exam:hover { background: #0056b3; }
+    a.back { display: block; margin-top: 20px; text-decoration: none; font-weight: bold; color: #dc3545; }
   </style>
 </head>
 <body>
-
-  <h1><%= course.course_name %></h1>
-  <p>Levels:</p>
+  <h1><%= course.course_name %> Levels</h1>
 
   <ul class="level-list">
-    <% for (let i = 1; i <= levels; i++) { %>
+    <% for(let i = 1; i <= levels; i++) { %>
       <li>
-        <span>Level <%= i %> - <%= levelTopics[i] || "No topic assigned" %></span>
-        <a href="/exam/<%= course.id %>/<%= i %>">Take Exam</a>
+        Level <%= i %> - <%= levelTopics[i] || "No topic assigned" %>
+        <br>
+        <a href="/exam/<%= course.id %>/<%= i %>" class="take-exam">Take Exam</a>
       </li>
     <% } %>
   </ul>
 
-  <br>
-  <a href="/student-courses">Back to Courses</a>
-
+  <a href="/student-courses" class="back">Back to Courses</a>
 </body>
 </html>

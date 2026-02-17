@@ -3,36 +3,39 @@
 <head>
   <title>Student Dashboard</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
+    body { font-family: Arial, sans-serif; background: #f9f9f9; margin: 20px; }
+    h1 { color: #333; }
     .course-card {
-      border: 1px solid #ccc;
-      padding: 15px;
-      margin: 10px;
       display: inline-block;
       width: 220px;
-      text-align: center;
+      margin: 10px;
+      padding: 15px;
       border-radius: 8px;
-      box-shadow: 2px 2px 5px #aaa;
+      background: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      text-align: center;
       text-decoration: none;
       color: black;
-      background-color: #f9f9f9;
     }
-    .course-card:hover { background-color: #e0f7fa; }
-    .course-title { font-weight: bold; font-size: 16px; margin-bottom: 8px; }
-    .course-levels { font-size: 14px; color: #555; }
-    a.logout { display: block; margin-top: 20px; color: red; text-decoration: none; }
+    .course-card:hover { background: #e0f7fa; }
+    .course-title { font-weight: bold; font-size: 16px; margin-bottom: 5px; }
+    .course-levels { font-size: 14px; color: #555; margin-bottom: 10px; }
+    .take-exam { padding: 6px 12px; background: #007BFF; color: white; border-radius: 5px; text-decoration: none; display: inline-block; }
+    .take-exam:hover { background: #0056b3; }
+    a.logout { display: block; margin-top: 20px; color: #dc3545; font-weight: bold; }
   </style>
 </head>
 <body>
   <h1>Welcome, <%= user.username %></h1>
-  <h2>Select a Course</h2>
+  <h2>Available Courses</h2>
 
   <div>
     <% courses.forEach(c => { %>
-      <a href="/student-levels/<%= c.id %>" class="course-card">
+      <div class="course-card">
         <div class="course-title"><%= c.course_name %></div>
         <div class="course-levels">Levels: <%= c.levels %></div>
-      </a>
+        <a href="/student-levels/<%= c.id %>" class="take-exam">View Levels</a>
+      </div>
     <% }) %>
   </div>
 
