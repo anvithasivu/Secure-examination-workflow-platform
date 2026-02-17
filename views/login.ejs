@@ -1,28 +1,71 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Login</title>
+  <title>SecureExam Pro - Login</title>
   <style>
-    body { font-family: Arial; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f0f2f5; }
-    .login-box { background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); width: 350px; }
-    input, select, button { width: 100%; padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #ccc; }
-    button { background: #007bff; color: white; border: none; }
-    button:hover { background: #0056b3; cursor: pointer; }
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #1b1b2f;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .login-container {
+      background-color: #26264d;
+      padding: 40px;
+      border-radius: 12px;
+      width: 350px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    }
+    .login-container h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #a5c8ff;
+    }
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 20px;
+      border-radius: 6px;
+      border: none;
+      outline: none;
+      font-size: 14px;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      background-color: #5c5cff;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover {
+      background-color: #3f3fff;
+    }
+    .forgot {
+      text-align: right;
+      display: block;
+      margin-bottom: 20px;
+      font-size: 12px;
+      color: #87cefa;
+      text-decoration: none;
+    }
   </style>
 </head>
 <body>
-  <div class="login-box">
-    <h2>Login</h2>
-    <form method="POST" action="/login">
-      <input type="text" name="username" placeholder="Username" required>
+  <div class="login-container">
+    <h1>SecureExam Pro</h1>
+    <form action="/login" method="POST">
+      <input type="text" name="username" placeholder="Institutional Email" required>
       <input type="password" name="password" placeholder="Password" required>
-      <select name="role" required>
-        <option value="">--Select Role--</option>
-        <option value="admin">Admin</option>
-        <option value="teacher">Teacher</option>
-        <option value="student">Student</option>
-      </select>
-      <button type="submit">Login</button>
+      <a href="#" class="forgot">Forgot?</a>
+      <button type="submit">Sign In to Portal →</button>
     </form>
   </div>
 </body>

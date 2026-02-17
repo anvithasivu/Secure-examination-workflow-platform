@@ -3,25 +3,26 @@
 <head>
   <title>Add Question</title>
   <script>
-    function toggleFields(){
+    function toggleFields() {
       const type = document.getElementById("question_type").value;
       document.getElementById("mcq_fields").style.display = (type === 'mcq') ? 'block' : 'none';
       document.getElementById("coding_fields").style.display = (type === 'coding') ? 'block' : 'none';
     }
   </script>
   <style>
-    body { font-family: Arial, sans-serif; background: #f9f9f9; margin: 20px; }
+    body { font-family: Arial, sans-serif; background-color: #f0f2f5; padding: 20px; }
     h1 { color: #333; }
-    form { background: white; padding: 20px; border-radius: 8px; width: 400px; }
-    label { display: block; margin-top: 10px; font-weight: bold; }
-    input, select, textarea, button { width: 100%; margin-top: 5px; padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
-    button { background: #007BFF; color: white; border: none; margin-top: 15px; cursor: pointer; }
-    button:hover { background: #0056b3; }
-    a.back { display: inline-block; margin-top: 15px; text-decoration: none; color: #dc3545; font-weight: bold; }
+    label { font-weight: bold; }
+    input, select, textarea { width: 100%; margin: 5px 0 15px 0; padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
+    button { background-color: #007BFF; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; }
+    button:hover { background-color: #0056b3; }
+    a { display: inline-block; margin-top: 15px; text-decoration: none; color: #007BFF; }
+    a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
   <h1>Add Question</h1>
+
   <form action="/add-question" method="POST">
     <label>Course:</label>
     <select name="course_id" required>
@@ -32,7 +33,7 @@
 
     <label>Level:</label>
     <select name="level" required>
-      <% for(let i=1;i<=10;i++){ %>
+      <% for(let i=1; i<=10; i++) { %>
         <option value="<%= i %>">Level <%= i %></option>
       <% } %>
     </select>
@@ -45,8 +46,7 @@
     </select>
 
     <div id="mcq_fields" style="display:none;">
-      <label>Question:</label>
-      <textarea name="question"></textarea>
+      <label>Question:</label><textarea name="question"></textarea>
       <input type="text" name="option1" placeholder="Option 1">
       <input type="text" name="option2" placeholder="Option 2">
       <input type="text" name="option3" placeholder="Option 3">
@@ -55,15 +55,14 @@
     </div>
 
     <div id="coding_fields" style="display:none;">
-      <label>Coding Question:</label>
-      <textarea name="coding_question"></textarea>
-      <label>Starter Code:</label>
-      <textarea name="starter_code"></textarea>
+      <label>Coding Question:</label><textarea name="coding_question"></textarea>
+      <label>Starter Code:</label><textarea name="starter_code"></textarea>
     </div>
 
     <button type="submit">Add Question</button>
   </form>
 
-  <a href="/teacher" class="back">Back to Dashboard</a>
+  <!-- Back to dashboard dynamically -->
+  <a href="<%= user.role === 'admin' ? '/admin' : '/teacher-dashboard' %>">← Back to Dashboard</a>
 </body>
 </html>

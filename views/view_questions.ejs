@@ -1,17 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>View Coding Questions</title>
+  <title>View Questions</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f9f9f9; margin: 20px; }
+    body { font-family: Arial, sans-serif; background: #f9f9f9; padding: 20px; }
     h1 { color: #333; }
     table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
+    th, td { padding: 10px; border: 1px solid #ccc; text-align: left; }
     th { background: #007BFF; color: white; }
     tr:nth-child(even) { background: #f2f2f2; }
-    a { text-decoration: none; color: #dc3545; font-weight: bold; }
-    a:hover { text-decoration: underline; }
-    .filters { margin-bottom: 20px; }
+    a.delete { color: #dc3545; text-decoration: none; font-weight: bold; }
+    a.delete:hover { text-decoration: underline; }
     select { padding: 5px; margin-right: 10px; }
   </style>
   <script>
@@ -23,50 +22,75 @@
   </script>
 </head>
 <body>
-  <h1>View Coding Questions</h1>
+  <h1>View Questions</h1>
 
-  <div class="filters">
-    <label for="courseFilter">Course:</label>
-    <select id="courseFilter" onchange="filterQuestions()">
-      <option value="0">-- All Courses --</option>
-      <% courses.forEach(c => { %>
-        <option value="<%= c.id %>" <%= selectedCourse == c.id ? "selected" : "" %>><%= c.course_name %></option>
-      <% }) %>
-    </select>
+  <label>Course:</label>
+  <select id="courseFilter" onchange="filterQuestions()">
+    <option value="0">-- All Courses --</option>
+    <% courses.forEach(c => { %>
+      <option value="<%= c.id %>" <%= selectedCourse == c.id ? "selected" : "" %>><%= c.course_name %></option>
+    <% }) %>
+  </select>
 
-    <label for="levelFilter">Level:</label>
-    <select id="levelFilter" onchange="filterQuestions()">
-      <option value="0">-- All Levels --</option>
-      <% for(let i=1; i<=10; i++) { %>
-        <option value="<%= i %>" <%= selectedLevel == i ? "selected" : "" %>>Level <%= i %></option>
-      <% } %>
-    </select>
-  </div>
+  <label>Level:</label>
+  <select id="levelFilter" onchange="filterQuestions()">
+    <option value="0">-- All Levels --</option>
+    <% for(let i=1;i<=10;i++){ %>
+      <option value="<%= i %>" <%= selectedLevel == i ? "selected" : "" %>>Level <%= i %></option>
+    <% } %>
+  </select>
 
+  <h2>MCQ Questions</h2>
   <table>
     <tr>
       <th>S.No</th>
-      <th>Coding Question</th>
-      <th>Starter Code</th>
+      <th>Question</th>
+      <th>Option 1</th>
+      <th>Option 2</th>
+      <th>Option 3</th>
+      <th>Option 4</th>
+      <th>Correct</th>
       <th>Action</th>
     </tr>
-
-    <% if(codingQuestions.length === 0){ %>
-      <tr><td colspan="4" style="text-align:center;">No coding questions found</td></tr>
+    <% if(mcqQuestions.length === 0){ %>
+      <tr><td colspan="8" style="text-align:center;">No MCQs found</td></tr>
     <% } %>
-
-    <% let counter=1; %>
-    <% codingQuestions.forEach(q => { %>
+    <% let counter=1; mcqQuestions.forEach(q => { %>
       <tr>
         <td><%= counter++ %></td>
-        <td><%= q.coding_question %></td>
-        <td><pre><%= q.starter_code %></pre></td>
-        <td><a href="/delete-question/<%= q.id %>">Delete</a></td>
+        <td><%= q.question %></td>
+        <td><%= q.option1 %></td>
+        <td><%= q.option2 %></td>
+        <td><%= q.option3 %></td>
+        <td><%= q.option4 %></td>
+        <td><%= q.correct %></td>
+        <td><a href="/delete-question/<%= q.id %>" class="delete">Delete</a></td>
       </tr>
     <% }) %>
   </table>
 
-  <br>
-  <a href="/teacher">Back to Dashboard</a>
+  <h2>Coding Questions</h2>
+  <table>
+    <tr>
+      <th>S.No</th>
+      <th>Question</th>
+      <th>Starter Code</th>
+      <th>Action</th>
+    </tr>
+    <% if(codingQuestions.length === 0){ %>
+      <tr><td colspan="4" style="text-align:center;">No coding questions found</td></tr>
+    <% } %>
+    <% let counter2=1; codingQuestions.forEach(q => { %>
+      <tr>
+        <td><%= counter2++ %></td>
+        <td><%= q.coding_question %></td>
+        <td><pre><%= q.starter_code %></pre></td>
+        <td><a href="/delete-question/<%= q.id %>" class="delete">Delete</a></td>
+      </tr>
+    <% }) %>
+  </table>
+
+  <!-- Back to dashboard dynamically -->
+  <a href="<%= user.role === 'admin' ? '/admin' : '/teacher-dashboard' %>">← Back to Dashboard</a>
 </body>
 </html>
