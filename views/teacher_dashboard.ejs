@@ -3,16 +3,55 @@
 <head>
   <title>Teacher Dashboard</title>
   <style>
-    body { font-family: Arial; background: #f5f7fa; padding: 20px; }
+    body { font-family: Arial, sans-serif; background: #f9f9f9; margin: 20px; }
     h1 { color: #333; }
-    a { text-decoration: none; padding: 10px 15px; margin-right: 10px; background: #007bff; color: white; border-radius: 5px; }
-    a:hover { background: #0056b3; }
+    .actions { margin-top: 20px; }
+    .actions a {
+      display: inline-block;
+      margin-right: 15px;
+      padding: 10px 15px;
+      background: #007BFF;
+      color: white;
+      border-radius: 5px;
+      text-decoration: none;
+    }
+    .actions a:hover { background: #0056b3; }
+    .courses {
+      margin-top: 30px;
+      display: flex;
+      flex-wrap: wrap;
+    }
+    .course-card {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      padding: 15px;
+      margin: 10px;
+      width: 200px;
+      text-align: center;
+    }
+    .course-title { font-weight: bold; font-size: 16px; margin-bottom: 5px; }
+    a.logout { display: block; margin-top: 20px; color: #dc3545; font-weight: bold; text-decoration: none; }
   </style>
 </head>
 <body>
-  <h1>Welcome, <%= user.username %> (Teacher)</h1>
-  <a href="/add-question">Add Question</a>
-  <a href="/view-questions">View Questions</a>
-  <a href="/logout">Logout</a>
+  <h1>Welcome, <%= user.username %></h1>
+
+  <div class="actions">
+    <a href="/add-question">Add Question</a>
+    <a href="/view-questions">View Questions</a>
+  </div>
+
+  <h2>Available Courses</h2>
+  <div class="courses">
+    <% courses.forEach(c => { %>
+      <div class="course-card">
+        <div class="course-title"><%= c.course_name %></div>
+        <div>Levels: <%= c.levels %></div>
+      </div>
+    <% }) %>
+  </div>
+
+  <a href="/logout" class="logout">Logout</a>
 </body>
 </html>

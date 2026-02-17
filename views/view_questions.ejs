@@ -1,84 +1,19 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>All Questions</title>
+  <title>View Coding Questions</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      background-color: #f9f9f9;
-    }
-
-    h1, h2 {
-      color: #333;
-    }
-
-    label, select {
-      font-size: 16px;
-      margin-right: 10px;
-    }
-
-    .filters {
-      margin-bottom: 20px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 30px;
-      background-color: #fff;
-      box-shadow: 0 0 10px rgba(0,0,0,0.05);
-    }
-
-    th, td {
-      padding: 12px;
-      border: 1px solid #ddd;
-      text-align: left;
-    }
-
-    th {
-      background-color: #81c0ff;
-      color: white;
-    }
-
-    tr:nth-child(even) {
-      background-color: #f2f2f2;
-    }
-
-    .btn-delete {
-      background-color: #dc3545;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-
-    .btn-delete:hover {
-      background-color: #b52a37;
-    }
-
-    a {
-      text-decoration: none;
-      color: #a5ccf5;
-      font-weight: bold;
-    }
-
-    a:hover {
-      text-decoration: underline;
-    }
-
-    .section-title {
-      margin-top: 40px;
-      margin-bottom: 10px;
-      font-size: 20px;
-      color: #444;
-      border-bottom: 2px solid #007BFF;
-      padding-bottom: 5px;
-    }
+    body { font-family: Arial, sans-serif; background: #f9f9f9; margin: 20px; }
+    h1 { color: #333; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
+    th { background: #007BFF; color: white; }
+    tr:nth-child(even) { background: #f2f2f2; }
+    a { text-decoration: none; color: #dc3545; font-weight: bold; }
+    a:hover { text-decoration: underline; }
+    .filters { margin-bottom: 20px; }
+    select { padding: 5px; margin-right: 10px; }
   </style>
-
   <script>
     function filterQuestions() {
       const course = document.getElementById("courseFilter").value;
@@ -88,64 +23,26 @@
   </script>
 </head>
 <body>
-  <h1>All Questions</h1>
+  <h1>View Coding Questions</h1>
 
   <div class="filters">
     <label for="courseFilter">Course:</label>
     <select id="courseFilter" onchange="filterQuestions()">
       <option value="0">-- All Courses --</option>
-      <% if (courses && courses.length) { %>
-        <% courses.forEach(c => { %>
-          <option value="<%= c.id %>" <%= selectedCourse == c.id ? "selected" : "" %>><%= c.course_name %></option>
-        <% }) %>
-      <% } %>
+      <% courses.forEach(c => { %>
+        <option value="<%= c.id %>" <%= selectedCourse == c.id ? "selected" : "" %>><%= c.course_name %></option>
+      <% }) %>
     </select>
 
     <label for="levelFilter">Level:</label>
     <select id="levelFilter" onchange="filterQuestions()">
       <option value="0">-- All Levels --</option>
-      <% if (typeof maxLevel !== 'undefined' && maxLevel > 0) { %>
-        <% for (let i = 1; i <= maxLevel; i++) { %>
-          <option value="<%= i %>" <%= selectedLevel == i ? "selected" : "" %>>Level <%= i %></option>
-        <% } %>
+      <% for(let i=1; i<=10; i++) { %>
+        <option value="<%= i %>" <%= selectedLevel == i ? "selected" : "" %>>Level <%= i %></option>
       <% } %>
     </select>
   </div>
 
-  <div class="section-title">MCQ Questions</div>
-  <table>
-    <tr>
-      <th>S.No</th>
-      <th>Question</th>
-      <th>Option 1</th>
-      <th>Option 2</th>
-      <th>Option 3</th>
-      <th>Option 4</th>
-      <th>Correct</th>
-      <th>Action</th>
-    </tr>
-    <% if (!mcqQuestions || mcqQuestions.length === 0) { %>
-      <tr><td colspan="8" style="text-align:center;">No MCQ questions found</td></tr>
-    <% } else { %>
-      <% let counter = 1; %>
-      <% mcqQuestions.forEach(q => { %>
-        <tr>
-          <td><%= counter++ %></td>
-          <td><%= q.question %></td>
-          <td><%= q.option1 %></td>
-          <td><%= q.option2 %></td>
-          <td><%= q.option3 %></td>
-          <td><%= q.option4 %></td>
-          <td><%= q.correct %></td>
-          <td>
-            <a href="/delete-question/<%= q.id %>" class="btn-delete">Delete</a>
-          </td>
-        </tr>
-      <% }) %>
-    <% } %>
-  </table>
-
-  <div class="section-title">Coding Questions</div>
   <table>
     <tr>
       <th>S.No</th>
@@ -153,23 +50,23 @@
       <th>Starter Code</th>
       <th>Action</th>
     </tr>
-    <% if (!codingQuestions || codingQuestions.length === 0) { %>
-      <tr><td colspan="4" style="text-align:center;">No Coding questions found</td></tr>
-    <% } else { %>
-      <% let codingCounter = 1; %>
-      <% codingQuestions.forEach(q => { %>
-        <tr>
-          <td><%= codingCounter++ %></td>
-          <td><%= q.coding_question %></td>
-          <td><pre><%= q.starter_code %></pre></td>
-          <td>
-            <a href="/delete-question/<%= q.id %>" class="btn-delete">Delete</a>
-          </td>
-        </tr>
-      <% }) %>
+
+    <% if(codingQuestions.length === 0){ %>
+      <tr><td colspan="4" style="text-align:center;">No coding questions found</td></tr>
     <% } %>
+
+    <% let counter=1; %>
+    <% codingQuestions.forEach(q => { %>
+      <tr>
+        <td><%= counter++ %></td>
+        <td><%= q.coding_question %></td>
+        <td><pre><%= q.starter_code %></pre></td>
+        <td><a href="/delete-question/<%= q.id %>">Delete</a></td>
+      </tr>
+    <% }) %>
   </table>
 
-  <a href="/admin">Back to Dashboard</a>
+  <br>
+  <a href="/teacher">Back to Dashboard</a>
 </body>
 </html>
