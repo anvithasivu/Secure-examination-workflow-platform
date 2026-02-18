@@ -1,38 +1,36 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title><%= course.course_name %> Levels</title>
+  <title>Levels - <%= course.course_name %></title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f9f9f9; margin: 20px; }
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f0f4f8; }
     h1 { color: #333; }
-    ul.level-list { list-style: none; padding: 0; display: flex; flex-wrap: wrap; }
-    ul.level-list li {
-      background: white;
-      margin: 10px;
-      padding: 15px;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      text-align: center;
-      width: 180px;
+    .level-card {
+      display: inline-block; width: 150px; margin: 10px; padding: 15px; background: #fff;
+      border-radius: 8px; box-shadow: 2px 2px 5px #aaa; text-align: center; text-decoration: none; color: black;
     }
-    a.take-exam { display: inline-block; margin-top: 10px; padding: 6px 12px; background: #007BFF; color: white; border-radius: 5px; text-decoration: none; }
-    a.take-exam:hover { background: #0056b3; }
-    a.back { display: block; margin-top: 20px; text-decoration: none; font-weight: bold; color: #dc3545; }
+    .level-card:hover { background: #e0f7fa; }
+    .level-title { font-weight: bold; font-size: 16px; }
+    .logout { float: right; background: #dc3545; color: white; padding: 8px 15px; text-decoration: none; border-radius: 5px; }
+    .logout:hover { background: #b52a37; }
+    .back { margin-top: 20px; display: inline-block; background: #007BFF; color: white; padding: 8px 12px; text-decoration: none; border-radius: 5px; }
+    .back:hover { background: #0056b3; }
   </style>
 </head>
 <body>
-  <h1><%= course.course_name %> Levels</h1>
+  <a href="/logout" class="logout">Logout</a>
+  <h1>Course: <%= course.course_name %></h1>
+  <h2>Select a Level</h2>
 
-  <ul class="level-list">
-    <% for(let i = 1; i <= levels; i++) { %>
-      <li>
-        Level <%= i %> - <%= levelTopics[i] || "No topic assigned" %>
-        <br>
-        <a href="/exam/<%= course.id %>/<%= i %>" class="take-exam">Take Exam</a>
-      </li>
+  <div>
+    <% for(let i=1; i<=course.levels; i++){ %>
+      <a href="/exam/<%= course.id %>/<%= i %>" class="level-card">
+        <div class="level-title">Level <%= i %></div>
+        <div><%= levelTopics[i] || "Topic not assigned" %></div>
+      </a>
     <% } %>
-  </ul>
+  </div>
 
-  <a href="/student-courses" class="back">Back to Courses</a>
+  <a href="/student-dashboard" class="back">Back to Courses</a>
 </body>
 </html>

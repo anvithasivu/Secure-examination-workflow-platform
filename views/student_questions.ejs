@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Exam - Level <%= level %> (Course: <%= course.course_name %>)</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f9f9f9; }
+    h1, h2 { margin-top: 20px; color: #333; }
+    .question-box { background: #fff; padding: 10px; margin-bottom: 15px; border-radius: 5px; box-shadow: 0 0 5px rgba(0,0,0,0.1); }
+    input, textarea { width: 100%; padding: 8px; margin-top: 5px; border-radius: 4px; border: 1px solid #ccc; }
+    button { padding: 10px 15px; border: none; border-radius: 5px; background: #007BFF; color: white; cursor: pointer; margin-top: 15px; }
+    .back { display: inline-block; margin-top: 20px; padding: 8px 12px; background: #dc3545; color: white; border-radius: 5px; text-decoration: none; }
+    .back:hover { background: #b52a37; }
+  </style>
+</head>
+<body>
+  <h1>Exam - Level <%= level %> (Course: <%= course.course_name %>)</h1>
+
+  <form action="/submit-exam" method="POST">
+    <input type="hidden" name="course_id" value="<%= course.id %>">
+    <input type="hidden" name="level" value="<%= level %>">
+
+    <h2>MCQ Questions</h2>
+    <% mcqQuestions.forEach((q, index) => { %>
+      <div class="question-box">
+        <p><strong>Q<%= index+1 %>:</strong> <%= q.question %></p>
+        <input type="text" name="mcq_<%= q.id %>" placeholder="Type your answer here">
+      </div>
+    <% }) %>
+
+    <h2>Coding Questions</h2>
+    <% codingQuestions.forEach((q, index) => { %>
+      <div class="question-box">
+        <p><strong>Q<%= index+1 %>:</strong> <%= q.coding_question %></p>
+        <textarea name="coding_<%= q.id %>" rows="6" placeholder="Write your code here"></textarea>
+        <% if(q.starter_code){ %>
+          <pre>Starter Code: <%= q.starter_code %></pre>
+        <% } %>
+      </div>
+    <% }) %>
+
+    <button type="submit">Submit Exam</button>
+  </form>
+
+  <a href="/student-levels/<%= course.id %>" class="back">Back to Levels</a>
+</body>
+</html>
