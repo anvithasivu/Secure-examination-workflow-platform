@@ -6,13 +6,15 @@
   </title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Arial', sans-serif;
       margin: 20px;
-      background: #f0f4f8;
+      background-color: #e6e6fa;
+      color: #4a235a;
     }
 
-    h1 {
-      color: #333;
+    h1,
+    h2 {
+      color: #716499;
     }
 
     .level-card {
@@ -20,48 +22,56 @@
       width: 150px;
       margin: 10px;
       padding: 15px;
-      background: #fff;
-      border-radius: 8px;
-      box-shadow: 2px 2px 5px #aaa;
+      background-color: #fdfefe;
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(100, 80, 150, 0.1);
       text-align: center;
       text-decoration: none;
-      color: black;
+      color: #4a235a;
+      transition: 0.3s;
     }
 
     .level-card:hover {
-      background: #e0f7fa;
+      background-color: #e8daef;
+      box-shadow: 0 10px 20px rgba(100, 80, 150, 0.2);
     }
 
     .level-title {
       font-weight: bold;
       font-size: 16px;
+      color: #716499;
     }
 
     .logout {
       float: right;
-      background: #dc3545;
-      color: white;
+      background-color: #ffc4d9;
+      color: #4a235a;
+      font-weight: bold;
       padding: 8px 15px;
       text-decoration: none;
-      border-radius: 5px;
+      border-radius: 6px;
+      transition: 0.3s;
     }
 
     .logout:hover {
-      background: #b52a37;
+      background-color: #ff99b9;
     }
 
     .back {
       margin-top: 20px;
       display: inline-block;
-      background: #007BFF;
-      color: white;
+      background-color: #b8c0ff;
+      color: #4a235a;
+      font-weight: bold;
       padding: 8px 12px;
       text-decoration: none;
-      border-radius: 5px;
+      border-radius: 6px;
+      transition: 0.3s;
     }
 
     .back:hover {
-      background: #0056b3;
+      background-color: #9ba7f5;
+      color: #fff;
     }
   </style>
 </head>
@@ -75,19 +85,20 @@
   <div>
     <% for(let i=1; i<=course.levels; i++){ let isUnlocked=i <=maxUnlocked; let attemptInfo=attemptsMap[i] || 0; %>
       <% if (isUnlocked) { %>
-        <a href="/exam/<%= course.id %>/<%= i %>" class="level-card" style="border: 2px solid #4CAF50;">
+        <a href="/exam/<%= course.id %>/<%= i %>" class="level-card" style="border: 2px solid #b8c0ff;">
           <div class="level-title">Level <%= i %>
           </div>
           <div>
             <%= levelTopics[i] || "Topic not assigned" %>
           </div>
-          <div style="margin-top: 10px; font-size: 12px; color: #666;">Attempts: <%= attemptInfo %>
+          <div style="margin-top: 10px; font-size: 12px; color: #716499;">Attempts: <%= attemptInfo %>
           </div>
         </a>
         <% } else { %>
-          <div class="level-card" style="background: #e0e0e0; cursor: not-allowed; opacity: 0.6;">
-            <div class="level-title">Level <%= i %> 🔒</div>
-            <div>Locked</div>
+          <div class="level-card"
+            style="background-color: #f7f1fa; border: 1px solid #c9b1de; cursor: not-allowed; opacity: 0.7;">
+            <div class="level-title" style="color: #716499;">Level <%= i %> 🔒</div>
+            <div style="color: #716499;">Locked</div>
           </div>
           <% } %>
             <% } %>

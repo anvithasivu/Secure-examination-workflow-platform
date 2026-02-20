@@ -5,56 +5,71 @@
   <title>Exam - Level <%= level %> (Course: <%= course.course_name %>)</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Arial', sans-serif;
       margin: 20px;
-      background: #f9f9f9;
+      background-color: #e6e6fa;
+      color: #4a235a;
     }
 
     h1,
     h2 {
       margin-top: 20px;
-      color: #333;
+      color: #716499;
     }
 
     .question-box {
-      background: #fff;
-      padding: 10px;
-      margin-bottom: 15px;
-      border-radius: 5px;
-      box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+      background-color: #fdfefe;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(100, 80, 150, 0.1);
     }
 
-    input,
-    textarea {
+    input[type="text"],
+    textarea,
+    select {
       width: 100%;
-      padding: 8px;
-      margin-top: 5px;
-      border-radius: 4px;
-      border: 1px solid #ccc;
+      padding: 10px;
+      margin-top: 8px;
+      border-radius: 6px;
+      border: 1px solid #c9b1de;
+      background-color: #fdfefe;
+      color: #4a235a;
+      outline: none;
     }
 
     button {
-      padding: 10px 15px;
+      padding: 12px 20px;
       border: none;
-      border-radius: 5px;
-      background: #007BFF;
-      color: white;
+      border-radius: 6px;
+      background-color: #b8c0ff;
+      color: #4a235a;
+      font-weight: bold;
       cursor: pointer;
       margin-top: 15px;
+      font-size: 16px;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background-color: #9ba7f5;
+      color: #fff;
     }
 
     .back {
       display: inline-block;
       margin-top: 20px;
-      padding: 8px 12px;
-      background: #dc3545;
-      color: white;
-      border-radius: 5px;
+      padding: 10px 15px;
+      background-color: #ffc4d9;
+      color: #4a235a;
+      font-weight: bold;
+      border-radius: 6px;
       text-decoration: none;
+      transition: 0.3s;
     }
 
     .back:hover {
-      background: #b52a37;
+      background-color: #ff99b9;
     }
   </style>
 </head>

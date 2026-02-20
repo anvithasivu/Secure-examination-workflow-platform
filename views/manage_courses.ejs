@@ -5,8 +5,9 @@
     <title>Manage Courses</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f6f8;
+            font-family: 'Arial', sans-serif;
+            background-color: #e6e6fa;
+            color: #4a235a;
             margin: 0;
             padding: 20px;
         }
@@ -14,16 +15,16 @@
         .container {
             max-width: 900px;
             margin: 40px auto;
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background-color: #e8daef;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(100, 80, 150, 0.2);
         }
 
         h2,
         h3 {
-            color: #333;
-            border-bottom: 2px solid #eee;
+            color: #716499;
+            border-bottom: 2px solid #c9b1de;
             padding-bottom: 10px;
         }
 
@@ -35,51 +36,52 @@
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
+            color: #4a235a;
         }
 
         .form-group input,
         .form-group select {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            padding: 12px;
+            border: 1px solid #c9b1de;
+            background-color: #fdfefe;
+            color: #4a235a;
+            border-radius: 6px;
             box-sizing: border-box;
+            outline: none;
         }
 
         button {
-            padding: 10px 15px;
+            padding: 12px 20px;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
-            color: #fff;
+            color: #4a235a;
             margin-top: 10px;
+            transition: 0.3s;
         }
 
-        .btn-add {
-            background-color: #4CAF50;
-        }
-
-        .btn-add:hover {
-            background-color: #45a049;
-        }
-
+        .btn-add,
         .btn-assign {
-            background-color: #2196F3;
+            background-color: #b8c0ff;
         }
 
+        .btn-add:hover,
         .btn-assign:hover {
-            background-color: #1976D2;
+            background-color: #9ba7f5;
+            color: #fff;
         }
 
         .btn-delete {
-            background-color: #f44336;
-            padding: 6px 10px;
+            background-color: #ffc4d9;
+            color: #4a235a;
+            padding: 8px 12px;
             font-size: 14px;
         }
 
         .btn-delete:hover {
-            background-color: #e53935;
+            background-color: #ff99b9;
         }
 
         table {
@@ -87,22 +89,30 @@
             border-collapse: collapse;
             margin-top: 15px;
             margin-bottom: 30px;
+            background-color: #fdfefe;
+            border-radius: 8px;
+            overflow: hidden;
         }
 
         table,
         th,
         td {
-            border: 1px solid #ddd;
+            border: 1px solid #c9b1de;
         }
 
         th,
         td {
             text-align: left;
-            padding: 10px;
+            padding: 12px;
         }
 
         th {
-            background-color: #f2f2f2;
+            background-color: #b8c0ff;
+            color: #4a235a;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f7f1fa;
         }
 
         .btn-back {
@@ -110,14 +120,16 @@
             margin-bottom: 20px;
             text-decoration: none;
             color: #fff;
-            background-color: #607D8B;
+            background-color: #c9b1de;
             padding: 10px 15px;
-            border-radius: 4px;
+            border-radius: 6px;
             font-weight: bold;
+            transition: 0.3s;
         }
 
         .btn-back:hover {
-            background-color: #546E7A;
+            background-color: #b8c0ff;
+            color: #4a235a;
         }
 
         .flex-row {

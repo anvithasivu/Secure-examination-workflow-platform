@@ -5,13 +5,15 @@
   <title>Teacher Dashboard</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f9f9f9;
+      font-family: 'Arial', sans-serif;
+      background-color: #e6e6fa;
+      color: #4a235a;
       margin: 20px;
     }
 
-    h1 {
-      color: #333;
+    h1,
+    h2 {
+      color: #716499;
     }
 
     .actions {
@@ -22,14 +24,17 @@
       display: inline-block;
       margin-right: 15px;
       padding: 10px 15px;
-      background: #007BFF;
-      color: white;
-      border-radius: 5px;
+      background-color: #b8c0ff;
+      color: #4a235a;
+      font-weight: bold;
+      border-radius: 6px;
       text-decoration: none;
+      transition: 0.3s;
     }
 
     .actions a:hover {
-      background: #0056b3;
+      background-color: #9ba7f5;
+      color: #fff;
     }
 
     .courses {
@@ -39,27 +44,43 @@
     }
 
     .course-card {
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      background-color: #fdfefe;
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(100, 80, 150, 0.1);
       padding: 15px;
       margin: 10px;
       width: 200px;
       text-align: center;
+      transition: 0.3s;
+      color: #4a235a;
+    }
+
+    .course-card:hover {
+      background-color: #e8daef;
+      box-shadow: 0 10px 20px rgba(100, 80, 150, 0.2);
     }
 
     .course-title {
       font-weight: bold;
       font-size: 16px;
-      margin-bottom: 5px;
+      margin-bottom: 8px;
+      color: #716499;
     }
 
     a.logout {
-      display: block;
+      display: inline-block;
       margin-top: 20px;
-      color: #dc3545;
+      background-color: #ffc4d9;
+      color: #4a235a;
       font-weight: bold;
+      padding: 8px 15px;
+      border-radius: 6px;
       text-decoration: none;
+      transition: 0.3s;
+    }
+
+    a.logout:hover {
+      background-color: #ff99b9;
     }
   </style>
 </head>

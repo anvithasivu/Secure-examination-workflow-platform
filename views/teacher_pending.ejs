@@ -5,8 +5,9 @@
     <title>Pending Approval</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f6f8;
+            font-family: 'Arial', sans-serif;
+            background-color: #e6e6fa;
+            color: #4a235a;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -16,19 +17,19 @@
         }
 
         .container {
-            background: #fff;
+            background-color: #e8daef;
             padding: 40px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(100, 80, 150, 0.2);
             max-width: 400px;
         }
 
         h2 {
-            color: #FF9800;
+            color: #716499;
         }
 
         p {
-            color: #555;
+            color: #4a235a;
             line-height: 1.6;
         }
 
@@ -36,23 +37,31 @@
             display: inline-block;
             margin-top: 20px;
             text-decoration: none;
-            color: #fff;
-            background-color: #007BFF;
+            font-weight: bold;
+            color: #4a235a;
+            background-color: #b8c0ff;
             padding: 10px 20px;
-            border-radius: 4px;
-            transition: 0.2s;
+            border-radius: 6px;
+            transition: 0.3s;
         }
 
         .btn-retry:hover {
-            background-color: #0056b3;
+            background-color: #9ba7f5;
+            color: #fff;
         }
 
         a.logout {
             display: block;
             margin-top: 15px;
-            color: #dc3545;
+            color: #ff99b9;
+            font-weight: bold;
             text-decoration: none;
             font-size: 14px;
+            transition: 0.3s;
+        }
+
+        a.logout:hover {
+            color: #ff80a6;
         }
     </style>
 </head>

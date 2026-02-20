@@ -6,8 +6,9 @@
   <style>
     body {
       font-family: 'Arial', sans-serif;
-      background-color: #1b1b2f;
-      color: #fff;
+      background-color: #e6e6fa;
+      /* Lavender */
+      color: #4a235a;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -16,17 +17,18 @@
     }
 
     .login-container {
-      background-color: #26264d;
+      background-color: #e8daef;
+      /* Pastel Purple Lighter */
       padding: 40px;
       border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(100, 80, 150, 0.2);
       width: 350px;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
     }
 
     .login-container h1 {
       text-align: center;
       margin-bottom: 30px;
-      color: #a5c8ff;
+      color: #716499;
     }
 
     input[type="text"],
@@ -35,9 +37,11 @@
       padding: 12px;
       margin-bottom: 20px;
       border-radius: 6px;
-      border: none;
+      border: 1px solid #c9b1de;
+      background-color: #fdfefe;
+      color: #4a235a;
       outline: none;
-      font-size: 14px;
+      box-sizing: border-box;
     }
 
     button {
@@ -45,15 +49,17 @@
       padding: 12px;
       border: none;
       border-radius: 6px;
-      background-color: #5c5cff;
-      color: white;
+      background-color: #b8c0ff;
+      /* Pastel Blue */
+      color: #4a235a;
+      font-weight: bold;
       font-size: 16px;
       cursor: pointer;
       transition: 0.3s;
     }
 
     button:hover {
-      background-color: #3f3fff;
+      background-color: #9ba7f5;
     }
 
     .forgot {
@@ -61,8 +67,12 @@
       display: block;
       margin-bottom: 20px;
       font-size: 12px;
-      color: #87cefa;
+      color: #716499;
       text-decoration: none;
+    }
+
+    .forgot:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
