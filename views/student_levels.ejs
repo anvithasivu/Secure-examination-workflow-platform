@@ -1,36 +1,99 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-  <title>Levels - <%= course.course_name %></title>
+  <title>Levels - <%= course.course_name %>
+  </title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; background: #f0f4f8; }
-    h1 { color: #333; }
-    .level-card {
-      display: inline-block; width: 150px; margin: 10px; padding: 15px; background: #fff;
-      border-radius: 8px; box-shadow: 2px 2px 5px #aaa; text-align: center; text-decoration: none; color: black;
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f0f4f8;
     }
-    .level-card:hover { background: #e0f7fa; }
-    .level-title { font-weight: bold; font-size: 16px; }
-    .logout { float: right; background: #dc3545; color: white; padding: 8px 15px; text-decoration: none; border-radius: 5px; }
-    .logout:hover { background: #b52a37; }
-    .back { margin-top: 20px; display: inline-block; background: #007BFF; color: white; padding: 8px 12px; text-decoration: none; border-radius: 5px; }
-    .back:hover { background: #0056b3; }
+
+    h1 {
+      color: #333;
+    }
+
+    .level-card {
+      display: inline-block;
+      width: 150px;
+      margin: 10px;
+      padding: 15px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 2px 2px 5px #aaa;
+      text-align: center;
+      text-decoration: none;
+      color: black;
+    }
+
+    .level-card:hover {
+      background: #e0f7fa;
+    }
+
+    .level-title {
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .logout {
+      float: right;
+      background: #dc3545;
+      color: white;
+      padding: 8px 15px;
+      text-decoration: none;
+      border-radius: 5px;
+    }
+
+    .logout:hover {
+      background: #b52a37;
+    }
+
+    .back {
+      margin-top: 20px;
+      display: inline-block;
+      background: #007BFF;
+      color: white;
+      padding: 8px 12px;
+      text-decoration: none;
+      border-radius: 5px;
+    }
+
+    .back:hover {
+      background: #0056b3;
+    }
   </style>
 </head>
+
 <body>
   <a href="/logout" class="logout">Logout</a>
-  <h1>Course: <%= course.course_name %></h1>
+  <h1>Course: <%= course.course_name %>
+  </h1>
   <h2>Select a Level</h2>
 
   <div>
-    <% for(let i=1; i<=course.levels; i++){ %>
-      <a href="/exam/<%= course.id %>/<%= i %>" class="level-card">
-        <div class="level-title">Level <%= i %></div>
-        <div><%= levelTopics[i] || "Topic not assigned" %></div>
-      </a>
-    <% } %>
+    <% for(let i=1; i<=course.levels; i++){ let isUnlocked=i <=maxUnlocked; let attemptInfo=attemptsMap[i] || 0; %>
+      <% if (isUnlocked) { %>
+        <a href="/exam/<%= course.id %>/<%= i %>" class="level-card" style="border: 2px solid #4CAF50;">
+          <div class="level-title">Level <%= i %>
+          </div>
+          <div>
+            <%= levelTopics[i] || "Topic not assigned" %>
+          </div>
+          <div style="margin-top: 10px; font-size: 12px; color: #666;">Attempts: <%= attemptInfo %>
+          </div>
+        </a>
+        <% } else { %>
+          <div class="level-card" style="background: #e0e0e0; cursor: not-allowed; opacity: 0.6;">
+            <div class="level-title">Level <%= i %> 🔒</div>
+            <div>Locked</div>
+          </div>
+          <% } %>
+            <% } %>
   </div>
 
   <a href="/student-dashboard" class="back">Back to Courses</a>
 </body>
+
 </html>

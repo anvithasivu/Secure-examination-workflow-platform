@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Pending Approval</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+
+        .container {
+            background: #fff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+        }
+
+        h2 {
+            color: #FF9800;
+        }
+
+        p {
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .btn-retry {
+            display: inline-block;
+            margin-top: 20px;
+            text-decoration: none;
+            color: #fff;
+            background-color: #007BFF;
+            padding: 10px 20px;
+            border-radius: 4px;
+            transition: 0.2s;
+        }
+
+        .btn-retry:hover {
+            background-color: #0056b3;
+        }
+
+        a.logout {
+            display: block;
+            margin-top: 15px;
+            color: #dc3545;
+            text-decoration: none;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Approval Pending</h2>
+        <p>You have successfully assigned yourself to a course. However, an Administrator must approve your request
+            before you can access the Teacher Dashboard and begin managing questions.</p>
+        <p>Please check back later.</p>
+        <a href="/teacher-dashboard" class="btn-retry">Check Status</a>
+        <a href="/logout" class="logout">Logout</a>
+    </div>
+</body>
+
+</html>

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Admin Dashboard</title>
     <style>
@@ -21,7 +22,7 @@
             left: 0;
             height: 50px;
             background-color: #ffffff;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             display: flex;
             justify-content: flex-end;
             align-items: center;
@@ -53,6 +54,9 @@
             justify-content: center;
             margin-top: 50px;
             gap: 30px;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .card {
@@ -73,13 +77,27 @@
 
         .card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
         }
 
-        .add-question { background-color: #4CAF50; }
-        .view-questions { background-color: #2196F3; }
+        .add-question {
+            background-color: #4CAF50;
+        }
+
+        .view-questions {
+            background-color: #2196F3;
+        }
+
+        .view-results {
+            background-color: #9C27B0;
+        }
+
+        .manage-courses {
+            background-color: #FF9800;
+        }
     </style>
 </head>
+
 <body>
 
     <header>
@@ -91,7 +109,10 @@
     <div class="dashboard">
         <a href="/add-question" class="card add-question">Add Question</a>
         <a href="/view-questions" class="card view-questions">View Questions</a>
+        <a href="/view-results" class="card view-results">View Results</a>
+        <a href="/admin/manage-courses" class="card manage-courses">Manage Courses</a>
     </div>
 
 </body>
+
 </html>

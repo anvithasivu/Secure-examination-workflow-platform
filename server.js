@@ -2,6 +2,10 @@ const express = require("express");
 const mysql = require("mysql2");
 const session = require("express-session");
 const bcrypt = require("bcrypt");
+const { execSync } = require('child_process');
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
 
 const app = express();
 
@@ -33,6 +37,44 @@ db.connect(err => {
   app.listen(3000, () => console.log("Server running on http://localhost:3000"));
 });
 
+function runCode(lang, code, input) {
+  const tmpDir = path.join(__dirname, 'tmp');
+  if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir);
+
+  const uuid = crypto.randomUUID();
+  const inputFile = path.join(tmpDir, `${uuid}.in`);
+  fs.writeFileSync(inputFile, input);
+
+  let output = '';
+  try {
+    if (lang === 'python') {
+      const srcFile = path.join(tmpDir, `${uuid}.py`);
+      fs.writeFileSync(srcFile, code);
+      output = execSync(`python "${srcFile}" < "${inputFile}"`, { encoding: 'utf-8', timeout: 3000, stdio: 'pipe' });
+    } else if (lang === 'javascript') {
+      const srcFile = path.join(tmpDir, `${uuid}.js`);
+      fs.writeFileSync(srcFile, code);
+      output = execSync(`node "${srcFile}" < "${inputFile}"`, { encoding: 'utf-8', timeout: 3000, stdio: 'pipe' });
+    } else if (lang === 'c++' || lang === 'c') {
+      const ext = lang === 'c' ? 'c' : 'cpp';
+      const compiler = lang === 'c' ? 'gcc' : 'g++';
+      const srcFile = path.join(tmpDir, `${uuid}.${ext}`);
+      const exeFile = path.join(tmpDir, `${uuid}.exe`);
+      fs.writeFileSync(srcFile, code);
+      execSync(`${compiler} "${srcFile}" -o "${exeFile}"`, { encoding: 'utf-8', timeout: 5000, stdio: 'pipe' });
+      output = execSync(`"${exeFile}" < "${inputFile}"`, { encoding: 'utf-8', timeout: 3000, stdio: 'pipe' });
+    } else if (lang === 'java') {
+      const srcFile = path.join(tmpDir, `Main.java`);
+      fs.writeFileSync(srcFile, code);
+      execSync(`javac "${srcFile}"`, { encoding: 'utf-8', timeout: 5000, stdio: 'pipe' });
+      output = execSync(`java -cp "${tmpDir}" Main < "${inputFile}"`, { encoding: 'utf-8', timeout: 3000, stdio: 'pipe' });
+    }
+  } catch (err) {
+    output = err.stdout ? err.stdout.toString() : (err.stderr ? err.stderr.toString() : err.message);
+  }
+  return output.trim();
+}
+
 // ----------------------
 // Login
 // ----------------------
@@ -53,8 +95,42 @@ app.post("/login", (req, res) => {
 
       // Redirect by role
       if (user.role === "admin") return res.redirect("/admin");
-      if (user.role === "teacher") return res.redirect("/teacher-dashboard");
+      if (user.role === "teacher") {
+        db.query("SELECT * FROM teacher_courses WHERE teacher_id=?", [user.id], (err, courses) => {
+          if (err) throw err;
+          if (courses.length > 0) {
+            const course = courses[0];
+            if (course.status === 'approved') return res.redirect("/teacher-dashboard");
+            return res.redirect("/teacher/pending");
+          }
+          return res.redirect("/teacher/choose-course");
+        });
+        return; // wait for async query
+      }
       return res.redirect("/student-dashboard");
+    });
+  });
+});
+
+// ----------------------
+// Registration / Signup
+// ----------------------
+app.get("/signup", (req, res) => res.render("signup"));
+
+app.post("/signup", (req, res) => {
+  const { username, password, role } = req.body;
+  if (!["student", "teacher"].includes(role)) return res.send("Invalid role");
+
+  db.query("SELECT * FROM users WHERE username=?", [username], (err, users) => {
+    if (err) throw err;
+    if (users.length > 0) return res.send("User already exists");
+
+    bcrypt.hash(password, 10, (err, hash) => {
+      if (err) throw err;
+      db.query("INSERT INTO users (username, password, role) VALUES (?, ?, ?)", [username, hash, role], err => {
+        if (err) throw err;
+        res.redirect("/");
+      });
     });
   });
 });
@@ -72,18 +148,208 @@ app.get("/logout", (req, res) => {
 // ----------------------
 app.get("/admin", (req, res) => {
   if (!req.session.user || req.session.user.role !== "admin") return res.redirect("/");
+  res.render("admin_dashboard", { user: req.session.user });
+});
+
+app.get("/admin/manage-courses", (req, res) => {
+  if (!req.session.user || req.session.user.role !== "admin") return res.redirect("/");
   db.query("SELECT * FROM courses", (err, courses) => {
     if (err) throw err;
-    res.render("admin_dashboard", { user: req.session.user, courses });
+    db.query("SELECT * FROM users WHERE role='teacher'", (err, teachers) => {
+      if (err) throw err;
+      db.query(`SELECT teacher_courses.course_id, teacher_courses.teacher_id, teacher_courses.status, users.username FROM teacher_courses JOIN users ON teacher_courses.teacher_id = users.id`, (err, assignments) => {
+        if (err) throw err;
+
+        let pendingApprovals = assignments.filter(a => a.status === 'pending').map(a => {
+          let course = courses.find(c => c.id === a.course_id);
+          return {
+            teacher_id: a.teacher_id,
+            course_id: a.course_id,
+            username: a.username,
+            course_name: course ? course.course_name : "Unknown"
+          };
+        });
+
+        courses.forEach(c => {
+          let assigned = assignments.filter(a => a.course_id === c.id && a.status === 'approved').map(a => a.username);
+          c.teachers = assigned.length ? assigned.join(", ") : "None";
+        });
+
+        res.render("manage_courses", { user: req.session.user, courses, teachers, pendingApprovals });
+      });
+    });
   });
 });
 
+app.post("/admin/approve-teacher", (req, res) => {
+  if (!req.session.user || req.session.user.role !== "admin") return res.redirect("/");
+  const { course_id, teacher_id } = req.body;
+  db.query("UPDATE teacher_courses SET status='approved' WHERE course_id=? AND teacher_id=?", [course_id, teacher_id], err => {
+    if (err) throw err;
+    res.redirect("/admin/manage-courses");
+  });
+});
+
+app.post("/course/add-level", (req, res) => {
+  if (!req.session.user || !["admin", "teacher"].includes(req.session.user.role)) return res.redirect("/");
+  const { course_id } = req.body;
+
+  if (req.session.user.role === "teacher") {
+    db.query("SELECT * FROM teacher_courses WHERE teacher_id=? AND course_id=? AND status='approved'", [req.session.user.id, course_id], (err, exists) => {
+      if (err || exists.length === 0) return res.redirect("back");
+      db.query("UPDATE courses SET levels = levels + 1 WHERE id=?", [course_id], err2 => {
+        if (err2) throw err2;
+        res.redirect("back");
+      });
+    });
+  } else {
+    db.query("UPDATE courses SET levels = levels + 1 WHERE id=?", [course_id], err => {
+      if (err) throw err;
+      res.redirect("back");
+    });
+  }
+});
+
+app.post("/course/remove-level", (req, res) => {
+  if (!req.session.user || !["admin", "teacher"].includes(req.session.user.role)) return res.redirect("/");
+  const { course_id } = req.body;
+
+  const updateLevel = () => {
+    db.query("UPDATE courses SET levels = GREATEST(levels - 1, 1) WHERE id=?", [course_id], err => {
+      if (err) throw err;
+      res.redirect("back");
+    });
+  };
+
+  if (req.session.user.role === "teacher") {
+    db.query("SELECT * FROM teacher_courses WHERE teacher_id=? AND course_id=? AND status='approved'", [req.session.user.id, course_id], (err, exists) => {
+      if (err || exists.length === 0) return res.redirect("back");
+      updateLevel();
+    });
+  } else {
+    updateLevel();
+  }
+});
+
+app.post("/admin/assign-teacher", (req, res) => {
+  if (!req.session.user || req.session.user.role !== "admin") return res.redirect("/");
+  const { course_id, teacher_id } = req.body;
+  db.query("SELECT * FROM teacher_courses WHERE course_id=? AND teacher_id=?", [course_id, teacher_id], (err, exists) => {
+    if (err) throw err;
+    if (exists.length === 0) {
+      db.query("INSERT INTO teacher_courses (teacher_id, course_id, status) VALUES (?, ?, 'approved')", [teacher_id, course_id], err => {
+        res.redirect("/admin/manage-courses");
+      });
+    } else {
+      res.redirect("/admin/manage-courses");
+    }
+  });
+});
+
+app.post("/admin/add-course", (req, res) => {
+  if (!req.session.user || req.session.user.role !== "admin") return res.redirect("/");
+  let { course_name, levels } = req.body;
+  if (!levels || levels < 1) levels = 1;
+  db.query("INSERT INTO courses (course_name, levels) VALUES (?, ?)", [course_name, levels], err => {
+    if (err) throw err;
+    res.redirect("/admin/manage-courses");
+  });
+});
+
+app.post("/admin/delete-course", (req, res) => {
+  if (!req.session.user || req.session.user.role !== "admin") return res.redirect("/");
+  const { course_id } = req.body;
+
+  // Delete associated teacher assignments
+  db.query("DELETE FROM teacher_courses WHERE course_id=?", [course_id], err0 => {
+    if (err0) throw err0;
+    // Delete questions associated with the course
+    db.query("DELETE FROM questions WHERE course_id=?", [course_id], err => {
+      if (err) throw err;
+      // Delete results associated with the course
+      db.query("DELETE FROM results WHERE course_id=?", [course_id], err2 => {
+        if (err2) throw err2;
+        // Delete the course itself
+        db.query("DELETE FROM courses WHERE id=?", [course_id], err3 => {
+          if (err3) throw err3;
+          res.redirect("/admin/manage-courses");
+        });
+      });
+    });
+  });
+});
+
+app.get("/view-results", (req, res) => {
+  if (!req.session.user || !["admin", "teacher"].includes(req.session.user.role)) return res.redirect("/");
+
+  let query = `
+    SELECT 
+      users.username, 
+      courses.course_name, 
+      results.level, 
+      results.score 
+    FROM results 
+    JOIN users ON results.user_id = users.id 
+    JOIN courses ON results.course_id = courses.id
+  `;
+
+  if (req.session.user.role === "admin") {
+    query += " ORDER BY results.id DESC";
+    db.query(query, (err, resultsData) => {
+      if (err) throw err;
+      res.render("admin_results", { user: req.session.user, results: resultsData });
+    });
+  } else {
+    // Teacher
+    const teacherId = req.session.user.id;
+    query += ` JOIN teacher_courses ON courses.id = teacher_courses.course_id WHERE teacher_courses.teacher_id = ? ORDER BY results.id DESC`;
+    db.query(query, [teacherId], (err, resultsData) => {
+      if (err) throw err;
+      res.render("admin_results", { user: req.session.user, results: resultsData });
+    });
+  }
+});
+
 // ----------------------
-// Teacher Dashboard
+// Teacher Dashboard & Course Selection
 // ----------------------
-app.get("/teacher-dashboard", (req, res) => {
+app.get("/teacher/choose-course", (req, res) => {
   if (!req.session.user || req.session.user.role !== "teacher") return res.redirect("/");
   db.query("SELECT * FROM courses", (err, courses) => {
+    if (err) throw err;
+    res.render("teacher_choose_course", { courses });
+  });
+});
+
+app.post("/teacher/assign-course", (req, res) => {
+  if (!req.session.user || req.session.user.role !== "teacher") return res.redirect("/");
+  const { course_id } = req.body;
+  const teacher_id = req.session.user.id;
+
+  db.query("SELECT * FROM teacher_courses WHERE course_id=? AND teacher_id=?", [course_id, teacher_id], (err, exists) => {
+    if (err) throw err;
+    if (exists.length === 0) {
+      db.query("INSERT INTO teacher_courses (teacher_id, course_id, status) VALUES (?, ?, 'pending')", [teacher_id, course_id], err => {
+        if (err) throw err;
+        req.session.active_course_id = course_id;
+        res.redirect("/teacher/pending");
+      });
+    } else {
+      req.session.active_course_id = course_id;
+      if (exists[0].status === 'approved') return res.redirect("/teacher-dashboard");
+      res.redirect("/teacher/pending");
+    }
+  });
+});
+
+app.get("/teacher/pending", (req, res) => {
+  if (!req.session.user || req.session.user.role !== "teacher") return res.redirect("/");
+  res.render("teacher_pending");
+});
+
+app.get("/teacher-dashboard", (req, res) => {
+  if (!req.session.user || req.session.user.role !== "teacher") return res.redirect("/");
+  db.query("SELECT courses.* FROM courses JOIN teacher_courses ON courses.id = teacher_courses.course_id WHERE teacher_courses.teacher_id = ?", [req.session.user.id], (err, courses) => {
     if (err) throw err;
     res.render("teacher_dashboard", { user: req.session.user, courses });
   });
@@ -93,15 +359,23 @@ app.get("/teacher-dashboard", (req, res) => {
 // Add Question (Teacher/Admin)
 // ----------------------
 app.get("/add-question", (req, res) => {
-  if (!req.session.user || !["admin","teacher"].includes(req.session.user.role)) return res.redirect("/");
-  db.query("SELECT * FROM courses", (err, courses) => {
+  if (!req.session.user || !["admin", "teacher"].includes(req.session.user.role)) return res.redirect("/");
+
+  let q = "SELECT * FROM courses";
+  let params = [];
+  if (req.session.user.role === "teacher") {
+    q = "SELECT courses.* FROM courses JOIN teacher_courses ON courses.id = teacher_courses.course_id WHERE teacher_courses.teacher_id = ?";
+    params.push(req.session.user.id);
+  }
+
+  db.query(q, params, (err, courses) => {
     if (err) throw err;
     res.render("add_question", { courses, user: req.session.user });
   });
 });
 
 app.post("/add-question", (req, res) => {
-  const { course_id, level, question_type, question, option1, option2, option3, option4, correct, coding_question, starter_code } = req.body;
+  const { course_id, level, question_type, question, option1, option2, option3, option4, correct, coding_question, starter_code, tc1_in, tc1_out, tc2_in, tc2_out, tc3_in, tc3_out } = req.body;
 
   if (question_type === "mcq") {
     db.query(
@@ -110,9 +384,14 @@ app.post("/add-question", (req, res) => {
       err => { if (err) throw err; res.redirect("/add-question"); }
     );
   } else if (question_type === "coding") {
+    const testCases = JSON.stringify([
+      { input: tc1_in, output: tc1_out },
+      { input: tc2_in, output: tc2_out },
+      { input: tc3_in, output: tc3_out }
+    ]);
     db.query(
-      "INSERT INTO questions (course_id, level, coding_question, starter_code) VALUES (?,?,?,?)",
-      [course_id, level, coding_question, starter_code],
+      "INSERT INTO questions (course_id, level, coding_question, starter_code, test_cases) VALUES (?,?,?,?,?)",
+      [course_id, level, coding_question, starter_code, testCases],
       err => { if (err) throw err; res.redirect("/add-question"); }
     );
   } else res.send("Invalid question type");
@@ -122,24 +401,45 @@ app.post("/add-question", (req, res) => {
 // View Questions (Teacher/Admin)
 // ----------------------
 app.get("/view-questions", (req, res) => {
-  if (!req.session.user || !["admin","teacher"].includes(req.session.user.role)) return res.redirect("/");
+  if (!req.session.user || !["admin", "teacher"].includes(req.session.user.role)) return res.redirect("/");
 
   const selectedCourse = req.query.course_id || 0;
   const selectedLevel = req.query.level || 0;
 
-  db.query("SELECT * FROM courses", (err, courses) => {
+  let courseQ = "SELECT * FROM courses";
+  let courseParams = [];
+  if (req.session.user.role === "teacher") {
+    courseQ = "SELECT courses.* FROM courses JOIN teacher_courses ON courses.id = teacher_courses.course_id WHERE teacher_courses.teacher_id = ?";
+    courseParams.push(req.session.user.id);
+  }
+
+  db.query(courseQ, courseParams, (err, courses) => {
     if (err) throw err;
 
     let mcqQuery = "SELECT * FROM questions WHERE question IS NOT NULL";
     let codingQuery = "SELECT * FROM questions WHERE coding_question IS NOT NULL";
-    const params = [];
+    const params1 = [];
+    const params2 = [];
 
-    if (selectedCourse != 0) { mcqQuery += " AND course_id=?"; codingQuery += " AND course_id=?"; params.push(selectedCourse); }
-    if (selectedLevel != 0) { mcqQuery += " AND level=?"; codingQuery += " AND level=?"; params.push(selectedLevel); }
+    if (req.session.user.role === "teacher") {
+      mcqQuery += " AND course_id IN (SELECT course_id FROM teacher_courses WHERE teacher_id = ?)";
+      codingQuery += " AND course_id IN (SELECT course_id FROM teacher_courses WHERE teacher_id = ?)";
+      params1.push(req.session.user.id);
+      params2.push(req.session.user.id);
+    }
 
-    db.query(mcqQuery, params, (err, mcqQuestions) => {
+    if (selectedCourse != 0) {
+      mcqQuery += " AND course_id=?"; codingQuery += " AND course_id=?";
+      params1.push(selectedCourse); params2.push(selectedCourse);
+    }
+    if (selectedLevel != 0) {
+      mcqQuery += " AND level=?"; codingQuery += " AND level=?";
+      params1.push(selectedLevel); params2.push(selectedLevel);
+    }
+
+    db.query(mcqQuery, params1, (err, mcqQuestions) => {
       if (err) throw err;
-      db.query(codingQuery, params, (err2, codingQuestions) => {
+      db.query(codingQuery, params2, (err2, codingQuestions) => {
         if (err2) throw err2;
         res.render("view_questions", { mcqQuestions, codingQuestions, courses, selectedCourse, selectedLevel, user: req.session.user });
       });
@@ -149,7 +449,7 @@ app.get("/view-questions", (req, res) => {
 
 // Delete Question
 app.get("/delete-question/:id", (req, res) => {
-  if (!req.session.user || !["admin","teacher"].includes(req.session.user.role)) return res.redirect("/");
+  if (!req.session.user || !["admin", "teacher"].includes(req.session.user.role)) return res.redirect("/");
   const questionId = req.params.id;
   db.query("DELETE FROM questions WHERE id=?", [questionId], err => { if (err) throw err; res.redirect("/view-questions"); });
 });
@@ -175,7 +475,6 @@ app.get("/student-levels/:course_id", (req, res) => {
     if (!courseRows.length) return res.send("Course not found");
 
     const course = courseRows[0];
-
     const levelTopics = {
       1: "Conditional Statements",
       2: "Loop Statements",
@@ -183,7 +482,79 @@ app.get("/student-levels/:course_id", (req, res) => {
       4: "Strings"
     };
 
-    res.render("student_levels", { course, levels: course.levels, levelTopics });
+    db.query("SELECT * FROM results WHERE user_id=? AND course_id=?", [req.session.user.id, courseId], (err, results) => {
+      if (err) throw err;
+
+      let maxUnlocked = 1;
+      let attemptsMap = {};
+
+      results.forEach(r => {
+        attemptsMap[r.level] = r.attempts;
+        // Assume score > 0 means cleared. Adjust threshold if needed.
+        if (r.score > 0 && r.level >= maxUnlocked) {
+          maxUnlocked = r.level + 1;
+        }
+      });
+
+      res.render("student_levels", { course, levels: course.levels, levelTopics, maxUnlocked, attemptsMap });
+    });
+  });
+});
+
+app.post("/submit-exam", (req, res) => {
+  if (!req.session.user || req.session.user.role !== "student") return res.redirect("/");
+  const { course_id, level } = req.body;
+  const user_id = req.session.user.id;
+
+  db.query("SELECT * FROM questions WHERE course_id=? AND level=?", [course_id, level], (err, questions) => {
+    if (err) throw err;
+
+    let totalScore = 0;
+    let allCorrect = true;
+
+    for (let q of questions) {
+      if (q.question) { // MCQ
+        const studentAns = req.body[`mcq_${q.id}`];
+        if (studentAns == q.correct) {
+          totalScore += 10;
+        } else {
+          allCorrect = false;
+        }
+      } else if (q.coding_question) { // Coding
+        const studentCode = req.body[`coding_${q.id}`];
+        const lang = req.body[`lang_${q.id}`];
+        let testCases = [];
+        try { testCases = JSON.parse(q.test_cases); } catch (e) { }
+
+        let passedAll = true;
+        for (let tc of testCases) {
+          if (!tc.input && !tc.output) continue;
+          const out = runCode(lang, studentCode || '', tc.input || '');
+          if (out !== (tc.output || '').trim()) {
+            passedAll = false;
+            break;
+          }
+        }
+        if (passedAll && testCases.length > 0) {
+          totalScore += 20;
+        } else {
+          allCorrect = false;
+        }
+      }
+    }
+
+    db.query("SELECT * FROM results WHERE user_id=? AND course_id=? AND level=?", [user_id, course_id, level], (err, existing) => {
+      if (err) throw err;
+      if (existing.length > 0) {
+        db.query("UPDATE results SET score=?, attempts=attempts+1 WHERE user_id=? AND course_id=? AND level=?", [totalScore, user_id, course_id, level], err => {
+          res.redirect(`/student-levels/${course_id}`);
+        });
+      } else {
+        db.query("INSERT INTO results (user_id, course_id, level, score, attempts) VALUES (?,?,?,?, 1)", [user_id, course_id, level, totalScore], err => {
+          res.redirect(`/student-levels/${course_id}`);
+        });
+      }
+    });
   });
 });
 

@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Manage Courses</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h2,
+        h3 {
+            color: #333;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #fff;
+            margin-top: 10px;
+        }
+
+        .btn-add {
+            background-color: #4CAF50;
+        }
+
+        .btn-add:hover {
+            background-color: #45a049;
+        }
+
+        .btn-assign {
+            background-color: #2196F3;
+        }
+
+        .btn-assign:hover {
+            background-color: #1976D2;
+        }
+
+        .btn-delete {
+            background-color: #f44336;
+            padding: 6px 10px;
+            font-size: 14px;
+        }
+
+        .btn-delete:hover {
+            background-color: #e53935;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            margin-bottom: 30px;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid #ddd;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 10px;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .btn-back {
+            display: inline-block;
+            margin-bottom: 20px;
+            text-decoration: none;
+            color: #fff;
+            background-color: #607D8B;
+            padding: 10px 15px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .btn-back:hover {
+            background-color: #546E7A;
+        }
+
+        .flex-row {
+            display: flex;
+            gap: 20px;
+        }
+
+        .flex-col {
+            flex: 1;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <a href="/admin" class="btn-back">&larr; Back to Dashboard</a>
+        <h2>Manage Courses</h2>
+
+        <div class="flex-row">
+            <div class="flex-col">
+                <h3>Add New Course</h3>
+                <form action="/admin/add-course" method="POST">
+                    <div class="form-group">
+                        <label>Course Name:</label>
+                        <input type="text" name="course_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Number of Levels:</label>
+                        <input type="number" name="levels" min="1" value="1" required>
+                    </div>
+                    <button type="submit" class="btn-add">Add Course</button>
+                </form>
+            </div>
+            <div class="flex-col">
+                <h3>Assign Teacher to Course</h3>
+                <form action="/admin/assign-teacher" method="POST">
+                    <div class="form-group">
+                        <label>Select Course:</label>
+                        <select name="course_id" required>
+                            <% courses.forEach(course=> { %>
+                                <option value="<%= course.id %>">
+                                    <%= course.course_name %>
+                                </option>
+                                <% }) %>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Select Teacher:</label>
+                        <select name="teacher_id" required>
+                            <% teachers.forEach(teacher=> { %>
+                                <option value="<%= teacher.id %>">
+                                    <%= teacher.username %>
+                                </option>
+                                <% }) %>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-assign">Assign Teacher</button>
+                </form>
+            </div>
+        </div>
+
+        <h3 style="margin-top: 40px;">Pending Teacher Approvals</h3>
+        <% if (pendingApprovals && pendingApprovals.length> 0) { %>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Teacher</th>
+                        <th>Requested Course</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% pendingApprovals.forEach(pending=> { %>
+                        <tr>
+                            <td>
+                                <%= pending.username %>
+                            </td>
+                            <td>
+                                <%= pending.course_name %>
+                            </td>
+                            <td>
+                                <form action="/admin/approve-teacher" method="POST" style="display:inline-block;">
+                                    <input type="hidden" name="course_id" value="<%= pending.course_id %>">
+                                    <input type="hidden" name="teacher_id" value="<%= pending.teacher_id %>">
+                                    <button type="submit" class="btn-add">Approve</button>
+                                </form>
+                            </td>
+                        </tr>
+                        <% }) %>
+                </tbody>
+            </table>
+            <% } else { %>
+                <p>No pending approvals at the moment.</p>
+                <% } %>
+
+                    <h3 style="margin-top: 40px;">Existing Courses Overview</h3>
+                    <% if (courses && courses.length> 0) { %>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Course Name</th>
+                                    <th>Levels</th>
+                                    <th>Assigned Teachers</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% courses.forEach(course=> { %>
+                                    <tr>
+                                        <td>
+                                            <%= course.id %>
+                                        </td>
+                                        <td>
+                                            <%= course.course_name %>
+                                        </td>
+                                        <td>
+                                            <%= course.levels %>
+                                                <form action="/course/add-level" method="POST"
+                                                    style="display:inline-block; margin-left:10px;">
+                                                    <input type="hidden" name="course_id" value="<%= course.id %>">
+                                                    <button type="submit"
+                                                        style="padding: 2px 5px; margin:0; background-color: #4CAF50;">+</button>
+                                                </form>
+                                                <form action="/course/remove-level" method="POST"
+                                                    style="display:inline-block;">
+                                                    <input type="hidden" name="course_id" value="<%= course.id %>">
+                                                    <button type="submit"
+                                                        style="padding: 2px 5px; margin:0; background-color: #f44336;">-</button>
+                                                </form>
+                                        </td>
+                                        <td>
+                                            <%= course.teachers ? course.teachers : 'None' %>
+                                        </td>
+                                        <td>
+                                            <form action="/admin/delete-course" method="POST"
+                                                onsubmit="return confirm('Are you sure you want to delete this course? All questions, results, and teacher assignments related to it will also be deleted.');">
+                                                <input type="hidden" name="course_id" value="<%= course.id %>">
+                                                <button type="submit" class="btn-delete">Delete</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    <% }) %>
+                            </tbody>
+                        </table>
+                        <% } else { %>
+                            <p>No courses available right now.</p>
+                            <% } %>
+    </div>
+
+</body>
+
+</html>

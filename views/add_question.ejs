@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <title>Add Question</title>
   <script>
@@ -10,32 +11,75 @@
     }
   </script>
   <style>
-    body { font-family: Arial, sans-serif; background-color: #f0f2f5; padding: 20px; }
-    h1 { color: #333; }
-    label { font-weight: bold; }
-    input, select, textarea { width: 100%; margin: 5px 0 15px 0; padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
-    button { background-color: #007BFF; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; }
-    button:hover { background-color: #0056b3; }
-    a { display: inline-block; margin-top: 15px; text-decoration: none; color: #007BFF; }
-    a:hover { text-decoration: underline; }
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f2f5;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    label {
+      font-weight: bold;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      margin: 5px 0 15px 0;
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    a {
+      display: inline-block;
+      margin-top: 15px;
+      text-decoration: none;
+      color: #007BFF;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
+
 <body>
   <h1>Add Question</h1>
 
   <form action="/add-question" method="POST">
     <label>Course:</label>
     <select name="course_id" required>
-      <% courses.forEach(c => { %>
-        <option value="<%= c.id %>"><%= c.course_name %></option>
-      <% }) %>
+      <% courses.forEach(c=> { %>
+        <option value="<%= c.id %>">
+          <%= c.course_name %>
+        </option>
+        <% }) %>
     </select>
 
     <label>Level:</label>
     <select name="level" required>
       <% for(let i=1; i<=10; i++) { %>
-        <option value="<%= i %>">Level <%= i %></option>
-      <% } %>
+        <option value="<%= i %>">Level <%= i %>
+        </option>
+        <% } %>
     </select>
 
     <label>Question Type:</label>
@@ -57,6 +101,16 @@
     <div id="coding_fields" style="display:none;">
       <label>Coding Question:</label><textarea name="coding_question"></textarea>
       <label>Starter Code:</label><textarea name="starter_code"></textarea>
+
+      <h4>Test Cases (Required for Coding Questions)</h4>
+      <label>Test Case 1 Input:</label><textarea name="tc1_in"></textarea>
+      <label>Test Case 1 Expected Output:</label><textarea name="tc1_out"></textarea>
+
+      <label>Test Case 2 Input:</label><textarea name="tc2_in"></textarea>
+      <label>Test Case 2 Expected Output:</label><textarea name="tc2_out"></textarea>
+
+      <label>Test Case 3 Input:</label><textarea name="tc3_in"></textarea>
+      <label>Test Case 3 Expected Output:</label><textarea name="tc3_out"></textarea>
     </div>
 
     <button type="submit">Add Question</button>
@@ -65,4 +119,5 @@
   <!-- Back to dashboard dynamically -->
   <a href="<%= user.role === 'admin' ? '/admin' : '/teacher-dashboard' %>">← Back to Dashboard</a>
 </body>
+
 </html>

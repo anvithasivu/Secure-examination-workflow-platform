@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <title>SecureExam Pro - Login</title>
   <style>
@@ -13,19 +14,23 @@
       height: 100vh;
       margin: 0;
     }
+
     .login-container {
       background-color: #26264d;
       padding: 40px;
       border-radius: 12px;
       width: 350px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
     }
+
     .login-container h1 {
       text-align: center;
       margin-bottom: 30px;
       color: #a5c8ff;
     }
-    input[type="text"], input[type="password"] {
+
+    input[type="text"],
+    input[type="password"] {
       width: 100%;
       padding: 12px;
       margin-bottom: 20px;
@@ -34,6 +39,7 @@
       outline: none;
       font-size: 14px;
     }
+
     button {
       width: 100%;
       padding: 12px;
@@ -45,9 +51,11 @@
       cursor: pointer;
       transition: 0.3s;
     }
+
     button:hover {
       background-color: #3f3fff;
     }
+
     .forgot {
       text-align: right;
       display: block;
@@ -58,6 +66,7 @@
     }
   </style>
 </head>
+
 <body>
   <div class="login-container">
     <h1>SecureExam Pro</h1>
@@ -65,8 +74,12 @@
       <input type="text" name="username" placeholder="Institutional Email" required>
       <input type="password" name="password" placeholder="Password" required>
       <a href="#" class="forgot">Forgot?</a>
-      <button type="submit">Sign In to Portal →</button>
+      <button type="submit">Sign In to Portal &rarr;</button>
     </form>
+    <div style="text-align: center; margin-top: 20px;">
+      <a href="/signup" class="forgot" style="text-align: center; font-size: 14px;">New user? Sign up</a>
+    </div>
   </div>
 </body>
+
 </html>
