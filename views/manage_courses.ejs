@@ -245,22 +245,13 @@
                                             <%= course.id %>
                                         </td>
                                         <td>
-                                            <%= course.course_name %>
+                                            <a href="/course/<%= course.id %>/manage"
+                                                style="color: #4a235a; font-weight: bold; text-decoration: none;">
+                                                <%= course.course_name %>
+                                            </a>
                                         </td>
                                         <td>
                                             <%= course.levels %>
-                                                <form action="/course/add-level" method="POST"
-                                                    style="display:inline-block; margin-left:10px;">
-                                                    <input type="hidden" name="course_id" value="<%= course.id %>">
-                                                    <button type="submit"
-                                                        style="padding: 2px 5px; margin:0; background-color: #4CAF50;">+</button>
-                                                </form>
-                                                <form action="/course/remove-level" method="POST"
-                                                    style="display:inline-block;">
-                                                    <input type="hidden" name="course_id" value="<%= course.id %>">
-                                                    <button type="submit"
-                                                        style="padding: 2px 5px; margin:0; background-color: #f44336;">-</button>
-                                                </form>
                                         </td>
                                         <td>
                                             <%= course.teachers ? course.teachers : 'None' %>

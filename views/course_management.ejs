@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Manage Course - <%= course.course_name %>
+    </title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #e6e6fa;
+            color: #4a235a;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            background-color: #e8daef;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(100, 80, 150, 0.2);
+        }
+
+        h2,
+        h3 {
+            color: #716499;
+            border-bottom: 2px solid #c9b1de;
+            padding-bottom: 10px;
+        }
+
+        .level-item {
+            background-color: #fdfefe;
+            margin-bottom: 15px;
+            padding: 20px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(100, 80, 150, 0.1);
+        }
+
+        .level-info {
+            flex: 1;
+        }
+
+        .level-name {
+            font-weight: bold;
+            font-size: 18px;
+            color: #716499;
+        }
+
+        .level-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration: none;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+
+        .btn-add-q {
+            background-color: #b8c0ff;
+            color: #4a235a;
+        }
+
+        .btn-add-q:hover {
+            background-color: #9ba7f5;
+            color: #fff;
+        }
+
+        .btn-view-q {
+            background-color: #c9b1de;
+            color: #4a235a;
+        }
+
+        .btn-view-q:hover {
+            background-color: #b8c0ff;
+        }
+
+        .btn-rename {
+            background-color: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-delete {
+            background-color: #ffc4d9;
+            color: #4a235a;
+        }
+
+        .btn-delete:hover {
+            background-color: #ff99b9;
+        }
+
+        .btn-back {
+            display: inline-block;
+            margin-bottom: 20px;
+            background-color: #c9b1de;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .btn-plus {
+            background-color: #4CAF50;
+            color: white;
+            font-size: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px auto;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <a href="<%= user.role === 'admin' ? '/admin/manage-courses' : '/teacher-dashboard' %>" class="btn-back">&larr;
+            Back to Dashboard</a>
+        <h2>Manage Course: <%= course.course_name %>
+        </h2>
+
+        <h3>Levels</h3>
+        <div id="levels-list">
+            <% levels.forEach(level=> { %>
+                <div class="level-item">
+                    <div class="level-info">
+                        <span class="level-name">
+                            <%= level.level_name %>
+                        </span>
+                    </div>
+                    <div class="level-actions">
+                        <a href="/add-question?course_id=<%= course.id %>&level=<%= level.level_number %>"
+                            class="btn btn-add-q">Add Question</a>
+                        <a href="/view-questions?course_id=<%= course.id %>&level=<%= level.level_number %>"
+                            class="btn btn-view-q">View Questions</a>
+                        <button data-id="<%= level.id %>" data-name="<%= level.level_name %>"
+                            onclick="renameLevelBtn(this)" class="btn btn-rename">Rename</button>
+                        <form action="/course/remove-specific-level" method="POST" style="display:inline-block;"
+                            onsubmit="return confirm('Remove this level and all its questions?');">
+                            <input type="hidden" name="course_id" value="<%= course.id %>">
+                            <input type="hidden" name="level_id" value="<%= level.id %>">
+                            <button type="submit" class="btn btn-delete">Remove</button>
+                        </form>
+                    </div>
+                </div>
+                <% }) %>
+        </div>
+
+        <form action="/course/add-new-level" method="POST" style="text-align: center; margin-top: 30px;">
+            <input type="hidden" name="course_id" value="<%= course.id %>">
+            <button type="submit" class="btn btn-add-q" style="padding: 12px 25px;">Add New Level</button>
+        </form>
+    </div>
+
+    <script>
+        function renameLevelBtn(btn) {
+            const id = btn.getAttribute('data-id');
+            const oldName = btn.getAttribute('data-name');
+            const newName = prompt("Enter new name for the level:", oldName);
+            if (newName && newName !== oldName) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/course/rename-level';
+
+                const idInput = document.createElement('input');
+                idInput.type = 'hidden';
+                idInput.name = 'level_id';
+                idInput.value = id;
+                form.appendChild(idInput);
+
+                const nameInput = document.createElement('input');
+                nameInput.type = 'hidden';
+                nameInput.name = 'level_name';
+                nameInput.value = newName;
+                form.appendChild(nameInput);
+
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+    </script>
+</body>
+
+</html>

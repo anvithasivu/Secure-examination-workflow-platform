@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Manage Users</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #e6e6fa;
+            color: #4a235a;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 40px auto;
+            background-color: #e8daef;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(100, 80, 150, 0.2);
+        }
+
+        h2,
+        h3 {
+            color: #716499;
+            border-bottom: 2px solid #c9b1de;
+            padding-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            margin-bottom: 30px;
+            background-color: #fdfefe;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid #c9b1de;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 12px;
+        }
+
+        th {
+            background-color: #b8c0ff;
+            color: #4a235a;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f7f1fa;
+        }
+
+        .btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .btn-approve {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .btn-approve:hover {
+            background-color: #45a049;
+        }
+
+        .btn-delete {
+            background-color: #ffc4d9;
+            color: #4a235a;
+        }
+
+        .btn-delete:hover {
+            background-color: #ff99b9;
+        }
+
+        .btn-back {
+            display: inline-block;
+            margin-bottom: 20px;
+            background-color: #c9b1de;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .btn-back:hover {
+            background-color: #b8c0ff;
+            color: #4a235a;
+        }
+
+        .status-pending {
+            color: #d35400;
+            font-weight: bold;
+        }
+
+        .status-active {
+            color: #27ae60;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <a href="/admin" class="btn-back">&larr; Back to Dashboard</a>
+        <h2>User Management</h2>
+
+        <div
+            style="background-color: #fdfefe; padding: 20px; border-radius: 8px; margin-bottom: 30px; border: 1px solid #c9b1de;">
+            <h3>Add New Teacher</h3>
+            <form action="/admin/add-teacher" method="POST" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <input type="text" name="username" placeholder="Teacher Username" required
+                    style="flex: 2; min-width: 200px; padding: 10px; border-radius: 6px; border: 1px solid #c9b1de;">
+                <select name="course_id" required
+                    style="flex: 1; min-width: 200px; padding: 10px; border-radius: 6px; border: 1px solid #c9b1de;">
+                    <option value="" disabled selected>Assign to Course</option>
+                    <% courses.forEach(course=> { %>
+                        <option value="<%= course.id %>">
+                            <%= course.course_name %>
+                        </option>
+                        <% }) %>
+                </select>
+                <button type="submit" class="btn btn-approve" style="white-space: nowrap; flex: 0;">Create Teacher
+                    Account</button>
+            </form>
+            <p style="font-size: 12px; color: #716499; margin-top: 10px;">Note: Teachers will be prompted to set their
+                password during their first login.</p>
+        </div>
+
+        <h3>Pending Teachers</h3>
+        <% if (pendingTeachers && pendingTeachers.length> 0) { %>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% pendingTeachers.forEach(teacher=> { %>
+                        <tr>
+                            <td>
+                                <%= teacher.username %>
+                            </td>
+                            <td class="status-pending">
+                                <%= teacher.status %>
+                            </td>
+                            <td>
+                                <form action="/admin/approve-user" method="POST" style="display:inline-block;">
+                                    <input type="hidden" name="user_id" value="<%= teacher.id %>">
+                                    <button type="submit" class="btn btn-approve">Approve</button>
+                                </form>
+                                <form action="/admin/delete-user" method="POST" style="display:inline-block;"
+                                    onsubmit="return confirm('Reject and delete this account?');">
+                                    <input type="hidden" name="user_id" value="<%= teacher.id %>">
+                                    <button type="submit" class="btn btn-delete">Reject</button>
+                                </form>
+                            </td>
+                        </tr>
+                        <% }) %>
+                </tbody>
+            </table>
+            <% } else { %>
+                <p>No pending teachers at the moment.</p>
+                <% } %>
+
+                    <h3 style="margin-top: 40px;">Registered Students</h3>
+                    <% if (students && students.length> 0) { %>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Username</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% students.forEach(student=> { %>
+                                    <tr>
+                                        <td>
+                                            <%= student.username %>
+                                        </td>
+                                        <td>
+                                            <form action="/admin/delete-user" method="POST"
+                                                style="display:inline-block;"
+                                                onsubmit="return confirm('Are you sure you want to remove this student? They will need to register again to regain access.');">
+                                                <input type="hidden" name="user_id" value="<%= student.id %>">
+                                                <button type="submit" class="btn btn-delete">Remove</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    <% }) %>
+                            </tbody>
+                        </table>
+                        <% } else { %>
+                            <p>No students found.</p>
+                            <% } %>
+
+                                <h3 style="margin-top: 40px;">Approved Teachers</h3>
+                                <% if (activeTeachers && activeTeachers.length> 0) { %>
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>Username</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% activeTeachers.forEach(teacher=> { %>
+                                                <tr>
+                                                    <td>
+                                                        <%= teacher.username %>
+                                                    </td>
+                                                    <td>
+                                                        <form action="/admin/delete-user" method="POST"
+                                                            style="display:inline-block;"
+                                                            onsubmit="return confirm('Are you sure you want to remove this teacher?');">
+                                                            <input type="hidden" name="user_id"
+                                                                value="<%= teacher.id %>">
+                                                            <button type="submit" class="btn btn-delete">Remove</button>
+                                                        </form>
+                                                    </td>
+                                                </tr>
+                                                <% }) %>
+                                        </tbody>
+                                    </table>
+                                    <% } else { %>
+                                        <p>No active teachers found.</p>
+                                        <% } %>
+    </div>
+
+</body>
+
+</html>

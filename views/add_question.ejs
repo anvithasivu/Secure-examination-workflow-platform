@@ -81,7 +81,7 @@
     <label>Course:</label>
     <select name="course_id" required>
       <% courses.forEach(c=> { %>
-        <option value="<%= c.id %>">
+        <option value="<%= c.id %>" <%=preCourseId==c.id ? 'selected' : '' %>>
           <%= c.course_name %>
         </option>
         <% }) %>
@@ -89,10 +89,11 @@
 
     <label>Level:</label>
     <select name="level" required>
-      <% for(let i=1; i<=10; i++) { %>
-        <option value="<%= i %>">Level <%= i %>
-        </option>
-        <% } %>
+      <% let maxL=10; if(preCourseId !=0) { const c=courses.find(cr=> cr.id == preCourseId); if(c) maxL = c.levels; } %>
+        <% for(let i=1; i<=maxL; i++) { %>
+          <option value="<%= i %>" <%=preLevelNum==i ? 'selected' : '' %>>Level <%= i %>
+          </option>
+          <% } %>
     </select>
 
     <label>Question Type:</label>
