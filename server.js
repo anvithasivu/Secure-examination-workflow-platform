@@ -201,8 +201,8 @@ app.get("/admin/manage-users", (req, res) => {
     db.query("SELECT * FROM courses", (err2, courses) => {
       if (err2) throw err2;
       const students = users.filter(u => u.role === 'student');
-      const pendingTeachers = users.filter(u => u.role === 'teacher' && u.status === 'pending');
-      const activeTeachers = users.filter(u => u.role === 'teacher' && u.status === 'active');
+      const pendingTeachers = users.filter(u => u.role === 'teacher' && u.needs_password_setup === 1);
+      const activeTeachers = users.filter(u => u.role === 'teacher' && u.needs_password_setup === 0);
       res.render("admin_manage_users", { user: req.session.user, students, pendingTeachers, activeTeachers, courses });
     });
   });
@@ -215,16 +215,20 @@ app.post("/admin/add-teacher", (req, res) => {
   const status = 'active';
   const needs_password_setup = 1;
 
-  db.query("INSERT INTO users (username, role, status, needs_password_setup) VALUES (?, ?, ?, ?)", [username, role, status, needs_password_setup], (err, result) => {
-    if (err) {
-      if (err.code === 'ER_DUP_ENTRY') return res.send("Username already exists.");
-      throw err;
-    }
-    const teacher_id = result.insertId;
-    // Assign to course immediately
-    db.query("INSERT INTO teacher_courses (teacher_id, course_id, status) VALUES (?, ?, 'approved')", [teacher_id, course_id], err2 => {
-      if (err2) throw err2;
-      res.redirect("/admin/manage-users");
+  // Default password "teacherlogin"
+  bcrypt.hash("teacherlogin", 10, (err, hash) => {
+    if (err) throw err;
+    db.query("INSERT INTO users (username, password, role, status, needs_password_setup) VALUES (?, ?, ?, ?, ?)", [username, hash, role, status, needs_password_setup], (err, result) => {
+      if (err) {
+        if (err.code === 'ER_DUP_ENTRY') return res.send("Username already exists.");
+        throw err;
+      }
+      const teacher_id = result.insertId;
+      // Assign to course immediately
+      db.query("INSERT INTO teacher_courses (teacher_id, course_id, status) VALUES (?, ?, 'approved')", [teacher_id, course_id], err2 => {
+        if (err2) throw err2;
+        res.redirect("/admin/manage-users");
+      });
     });
   });
 });
@@ -353,20 +357,11 @@ app.post("/course/rename-level", (req, res) => {
   });
 });
 
+/* Legacy assignment route removed - handled during teacher creation
 app.post("/admin/assign-teacher", (req, res) => {
-  if (!req.session.user || req.session.user.role !== "admin") return res.redirect("/");
-  const { course_id, teacher_id } = req.body;
-  db.query("SELECT * FROM teacher_courses WHERE course_id=? AND teacher_id=?", [course_id, teacher_id], (err, exists) => {
-    if (err) throw err;
-    if (exists.length === 0) {
-      db.query("INSERT INTO teacher_courses (teacher_id, course_id, status) VALUES (?, ?, 'approved')", [teacher_id, course_id], err => {
-        res.redirect("/admin/manage-courses");
-      });
-    } else {
-      res.redirect("/admin/manage-courses");
-    }
-  });
+  ...
 });
+*/
 
 app.post("/admin/add-course", (req, res) => {
   if (!req.session.user || req.session.user.role !== "admin") return res.redirect("/");

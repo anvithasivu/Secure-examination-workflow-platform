@@ -140,111 +140,106 @@
                 <button type="submit" class="btn btn-approve" style="white-space: nowrap; flex: 0;">Create Teacher
                     Account</button>
             </form>
-            <p style="font-size: 12px; color: #716499; margin-top: 10px;">Note: Teachers will be prompted to set their
-                password during their first login.</p>
-        </div>
-
-        <h3>Pending Teachers</h3>
-        <% if (pendingTeachers && pendingTeachers.length> 0) { %>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Username</th>
-                        <th>Status</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <% pendingTeachers.forEach(teacher=> { %>
+            <h3>Pending Teachers (Awaiting Password Setup)</h3>
+            <% if (pendingTeachers && pendingTeachers.length> 0) { %>
+                <table>
+                    <thead>
                         <tr>
-                            <td>
-                                <%= teacher.username %>
-                            </td>
-                            <td class="status-pending">
-                                <%= teacher.status %>
-                            </td>
-                            <td>
-                                <form action="/admin/approve-user" method="POST" style="display:inline-block;">
-                                    <input type="hidden" name="user_id" value="<%= teacher.id %>">
-                                    <button type="submit" class="btn btn-approve">Approve</button>
-                                </form>
-                                <form action="/admin/delete-user" method="POST" style="display:inline-block;"
-                                    onsubmit="return confirm('Reject and delete this account?');">
-                                    <input type="hidden" name="user_id" value="<%= teacher.id %>">
-                                    <button type="submit" class="btn btn-delete">Reject</button>
-                                </form>
-                            </td>
+                            <th>Username</th>
+                            <th>Action</th>
                         </tr>
-                        <% }) %>
-                </tbody>
-            </table>
-            <% } else { %>
-                <p>No pending teachers at the moment.</p>
-                <% } %>
+                    </thead>
+                    <tbody>
+                        <% pendingTeachers.forEach(teacher=> { %>
+                            <tr>
+                                <td>
+                                    <%= teacher.username %>
+                                </td>
+                                <td>
+                                    <form action="/admin/delete-user" method="POST" style="display:inline-block;"
+                                        onsubmit="return confirm('Delete this account?');">
+                                        <input type="hidden" name="user_id" value="<%= teacher.id %>">
+                                        <button type="submit" class="btn btn-delete">Remove</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <% }) %>
+                    </tbody>
+                </table>
+                <% } else { %>
+                    <p>No pending teachers awaiting password change.</p>
+                    <% } %>
 
-                    <h3 style="margin-top: 40px;">Registered Students</h3>
-                    <% if (students && students.length> 0) { %>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Username</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <% students.forEach(student=> { %>
+                        <div
+                            style="font-size: 14px; background-color: #f7f1fa; padding: 10px; border-radius: 6px; margin-bottom: 20px; border-left: 4px solid #b8c0ff;">
+                            <strong>Default Password:</strong> All new teachers are assigned <code>teacherlogin</code>
+                            as their initial password and will be prompted to change it upon login.
+                        </div>
+
+                        <h3 style="margin-top: 40px;">Registered Students</h3>
+                        <% if (students && students.length> 0) { %>
+                            <table>
+                                <thead>
                                     <tr>
-                                        <td>
-                                            <%= student.username %>
-                                        </td>
-                                        <td>
-                                            <form action="/admin/delete-user" method="POST"
-                                                style="display:inline-block;"
-                                                onsubmit="return confirm('Are you sure you want to remove this student? They will need to register again to regain access.');">
-                                                <input type="hidden" name="user_id" value="<%= student.id %>">
-                                                <button type="submit" class="btn btn-delete">Remove</button>
-                                            </form>
-                                        </td>
+                                        <th>Username</th>
+                                        <th>Action</th>
                                     </tr>
-                                    <% }) %>
-                            </tbody>
-                        </table>
-                        <% } else { %>
-                            <p>No students found.</p>
-                            <% } %>
+                                </thead>
+                                <tbody>
+                                    <% students.forEach(student=> { %>
+                                        <tr>
+                                            <td>
+                                                <%= student.username %>
+                                            </td>
+                                            <td>
+                                                <form action="/admin/delete-user" method="POST"
+                                                    style="display:inline-block;"
+                                                    onsubmit="return confirm('Are you sure you want to remove this student? They will need to register again to regain access.');">
+                                                    <input type="hidden" name="user_id" value="<%= student.id %>">
+                                                    <button type="submit" class="btn btn-delete">Remove</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                        <% }) %>
+                                </tbody>
+                            </table>
+                            <% } else { %>
+                                <p>No students found.</p>
+                                <% } %>
 
-                                <h3 style="margin-top: 40px;">Approved Teachers</h3>
-                                <% if (activeTeachers && activeTeachers.length> 0) { %>
-                                    <table>
-                                        <thead>
-                                            <tr>
-                                                <th>Username</th>
-                                                <th>Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <% activeTeachers.forEach(teacher=> { %>
+                                    <h3 style="margin-top: 40px;">Approved Teachers</h3>
+                                    <% if (activeTeachers && activeTeachers.length> 0) { %>
+                                        <table>
+                                            <thead>
                                                 <tr>
-                                                    <td>
-                                                        <%= teacher.username %>
-                                                    </td>
-                                                    <td>
-                                                        <form action="/admin/delete-user" method="POST"
-                                                            style="display:inline-block;"
-                                                            onsubmit="return confirm('Are you sure you want to remove this teacher?');">
-                                                            <input type="hidden" name="user_id"
-                                                                value="<%= teacher.id %>">
-                                                            <button type="submit" class="btn btn-delete">Remove</button>
-                                                        </form>
-                                                    </td>
+                                                    <th>Username</th>
+                                                    <th>Action</th>
                                                 </tr>
-                                                <% }) %>
-                                        </tbody>
-                                    </table>
-                                    <% } else { %>
-                                        <p>No active teachers found.</p>
-                                        <% } %>
-    </div>
+                                            </thead>
+                                            <tbody>
+                                                <% activeTeachers.forEach(teacher=> { %>
+                                                    <tr>
+                                                        <td>
+                                                            <%= teacher.username %>
+                                                        </td>
+                                                        <td>
+                                                            <form action="/admin/delete-user" method="POST"
+                                                                style="display:inline-block;"
+                                                                onsubmit="return confirm('Are you sure you want to remove this teacher?');">
+                                                                <input type="hidden" name="user_id"
+                                                                    value="<%= teacher.id %>">
+                                                                <button type="submit"
+                                                                    class="btn btn-delete">Remove</button>
+                                                            </form>
+                                                        </td>
+                                                    </tr>
+                                                    <% }) %>
+                                            </tbody>
+                                        </table>
+                                        <% } else { %>
+                                            <p>No active teachers found.</p>
+                                            <% } %>
+        </div>
 
 </body>
 
