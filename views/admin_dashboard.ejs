@@ -19,16 +19,175 @@
         </div>
 
         <div class="container">
-            <h1 class="page-title">Admin Dashboard</h1>
+            <div style="display:flex; align-items:flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+                <div>
+                    <h1 class="page-title" style="margin-bottom: 6px;">Admin Dashboard</h1>
+                    <div class="page-subtitle" style="margin: 0;">Oversight view — monitor the system and remove accounts if required.</div>
+                </div>
+            </div>
 
-            <div class="grid">
+            <div class="grid" style="margin-top: 18px;">
                 <div class="col-12">
                     <div class="card">
-                        <h3 class="card-title">Monitoring</h3>
-                        <div class="card-actions">
+                        <div style="display:flex; align-items:center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+                            <div>
+                                <div class="card-title" style="margin-bottom: 4px;">System Overview</div>
+                                <div style="opacity: 0.75;">High-level summary of platform usage.</div>
+                            </div>
+                            <div class="card-actions">
+                                <a href="/admin/manage-courses" class="btn btn-ghost">Courses</a>
+                                <a href="/admin/manage-users" class="btn btn-ghost">Users</a>
+                                <a href="/view-results" class="btn btn-ghost">Results</a>
+                            </div>
+                        </div>
+
+                        <div class="grid" style="margin-top: 14px;">
+                            <div class="col-3">
+                                <div class="card" style="margin: 0; background: var(--card);">
+                                    <div style="opacity: 0.75; font-weight: 700;">Total Courses</div>
+                                    <div style="font-size: 28px; font-weight: 900; margin-top: 6px;"><%= (stats && stats.totalCourses != null) ? stats.totalCourses : 0 %></div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="card" style="margin: 0; background: var(--card);">
+                                    <div style="opacity: 0.75; font-weight: 700;">Total Students</div>
+                                    <div style="font-size: 28px; font-weight: 900; margin-top: 6px;"><%= (stats && stats.totalStudents != null) ? stats.totalStudents : 0 %></div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="card" style="margin: 0; background: var(--card);">
+                                    <div style="opacity: 0.75; font-weight: 700;">Total Teachers</div>
+                                    <div style="font-size: 28px; font-weight: 900; margin-top: 6px;"><%= (stats && stats.totalTeachers != null) ? stats.totalTeachers : 0 %></div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="card" style="margin: 0; background: var(--card);">
+                                    <div style="opacity: 0.75; font-weight: 700;">Total Results</div>
+                                    <div style="font-size: 28px; font-weight: 900; margin-top: 6px;"><%= (stats && stats.totalResults != null) ? stats.totalResults : 0 %></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-6">
+                    <div class="card">
+                        <div class="card-title" style="margin-bottom: 6px;">Manage Courses</div>
+                        <div style="opacity: 0.75;">Browse courses and view course structure (read-only).</div>
+                        <div class="card-actions" style="margin-top: 14px;">
                             <a href="/admin/manage-courses" class="btn">View Courses</a>
-                            <a href="/admin/manage-users" class="btn">View Users</a>
-                            <a href="/view-results" class="btn btn-secondary">View Results</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-6">
+                    <div class="card">
+                        <div class="card-title" style="margin-bottom: 6px;">Manage Users</div>
+                        <div style="opacity: 0.75;">View users and remove accounts if needed. Creation/approvals are handled by the Academic Coordinator.</div>
+                        <div class="card-actions" style="margin-top: 14px;">
+                            <a href="/admin/manage-users?tab=students" class="btn">Students</a>
+                            <a href="/admin/manage-users?tab=teachers" class="btn btn-secondary">Teachers</a>
+                            <a href="/admin/manage-users" class="btn btn-ghost">All Users</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="card">
+                        <div style="display:flex; align-items:center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+                            <div>
+                                <div class="card-title" style="margin-bottom: 6px;">Results & Analytics</div>
+                                <div style="opacity: 0.75;">Review performance outcomes (course-wise view available).</div>
+                            </div>
+                            <div class="card-actions">
+                                <a href="/view-results" class="btn btn-secondary">View Results</a>
+                            </div>
+                        </div>
+
+                        <div class="grid" style="margin-top: 12px;">
+                            <div class="col-6">
+                                <div class="card" style="margin:0;">
+                                    <div style="font-weight: 900;">Course-wise Results</div>
+                                    <div style="opacity: 0.75; margin-top: 6px;">Grouped summaries by course to spot trends quickly.</div>
+                                    <div style="margin-top: 12px;">
+                                        <a href="/view-results" class="btn btn-ghost">Open Course-wise View</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="card" style="margin:0;">
+                                    <div style="font-weight: 900;">Quick Checks</div>
+                                    <div style="opacity: 0.75; margin-top: 6px;">Review recent submissions and system updates.</div>
+                                    <div style="margin-top: 12px;">
+                                        <a href="#recent_updates" class="btn btn-ghost">Jump to Recent Updates</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12" id="recent_updates">
+                    <div class="card">
+                        <div class="card-title" style="margin-bottom: 6px;">Recent Updates</div>
+                        <div style="opacity: 0.75;">Latest user accounts and result submissions.</div>
+
+                        <div class="grid" style="margin-top: 14px;">
+                            <div class="col-6">
+                                <div class="card" style="margin:0;">
+                                    <div style="font-weight: 900; margin-bottom: 10px;">Recent Accounts</div>
+                                    <% if (recentUsers && recentUsers.length > 0) { %>
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Username</th>
+                                                    <th>Role</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <% recentUsers.forEach(u => { %>
+                                                    <tr>
+                                                        <td><%= u.username %></td>
+                                                        <td style="text-transform: capitalize;"><%= u.role %></td>
+                                                    </tr>
+                                                <% }) %>
+                                            </tbody>
+                                        </table>
+                                    <% } else { %>
+                                        <div class="alert alert-empty">No recent account activity.</div>
+                                    <% } %>
+                                </div>
+                            </div>
+
+                            <div class="col-6">
+                                <div class="card" style="margin:0;">
+                                    <div style="font-weight: 900; margin-bottom: 10px;">Recent Results</div>
+                                    <% if (recentResults && recentResults.length > 0) { %>
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Student</th>
+                                                    <th>Course</th>
+                                                    <th>Level</th>
+                                                    <th>Score</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <% recentResults.forEach(r => { %>
+                                                    <tr>
+                                                        <td><%= r.username %></td>
+                                                        <td><%= r.course_name %></td>
+                                                        <td><%= r.level %></td>
+                                                        <td><%= r.score %>%</td>
+                                                    </tr>
+                                                <% }) %>
+                                            </tbody>
+                                        </table>
+                                    <% } else { %>
+                                        <div class="alert alert-empty">No recent results yet.</div>
+                                    <% } %>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

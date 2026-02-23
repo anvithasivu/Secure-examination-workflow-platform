@@ -157,6 +157,16 @@
                         students.style.display = '';
                     }
                 }
+
+                (function () {
+                    try {
+                        const params = new URLSearchParams(window.location.search);
+                        const tab = params.get('tab');
+                        if (tab === 'teachers') showTab('teachers');
+                        if (tab === 'students') showTab('students');
+                    } catch (e) {
+                    }
+                })();
             </script>
         </div>
     </div>

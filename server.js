@@ -165,7 +165,58 @@ app.get("/logout", (req, res) => {
 // ----------------------
 app.get("/admin", (req, res) => {
   if (!req.session.user || req.session.user.role !== "admin") return res.redirect("/");
-  res.render("admin_dashboard", { user: req.session.user });
+
+  const stats = {
+    totalCourses: 0,
+    totalStudents: 0,
+    totalTeachers: 0,
+    totalResults: 0,
+  };
+
+  db.query("SELECT COUNT(*) AS cnt FROM courses", (err, courseRows) => {
+    if (err) throw err;
+    stats.totalCourses = courseRows?.[0]?.cnt ?? 0;
+
+    db.query("SELECT COUNT(*) AS cnt FROM users WHERE role='student'", (err2, studentRows) => {
+      if (err2) throw err2;
+      stats.totalStudents = studentRows?.[0]?.cnt ?? 0;
+
+      db.query("SELECT COUNT(*) AS cnt FROM users WHERE role='teacher'", (err3, teacherRows) => {
+        if (err3) throw err3;
+        stats.totalTeachers = teacherRows?.[0]?.cnt ?? 0;
+
+        db.query("SELECT COUNT(*) AS cnt FROM results", (err4, resultCountRows) => {
+          if (err4) throw err4;
+          stats.totalResults = resultCountRows?.[0]?.cnt ?? 0;
+
+          db.query(
+            "SELECT id, username, role FROM users ORDER BY id DESC LIMIT 6",
+            (err5, recentUsers) => {
+              if (err5) throw err5;
+
+              db.query(
+                `SELECT r.id, u.username, c.course_name, r.level, r.score
+                 FROM results r
+                 JOIN users u ON u.id = r.user_id
+                 JOIN courses c ON c.id = r.course_id
+                 ORDER BY r.id DESC
+                 LIMIT 6`,
+                (err6, recentResults) => {
+                  if (err6) throw err6;
+                  res.render("admin_dashboard", {
+                    user: req.session.user,
+                    stats,
+                    recentUsers,
+                    recentResults,
+                  });
+                }
+              );
+            }
+          );
+        });
+      });
+    });
+  });
 });
 
 // ----------------------
