@@ -223,7 +223,49 @@ app.get("/admin", (req, res) => {
 // Academic Coordinator Dashboard
 // ----------------------
 app.get("/coordinator", requireRole("academic_coordinator"), (req, res) => {
-  res.render("academic_coordinator_dashboard", { user: req.session.user });
+  const stats = {
+    totalCourses: 0,
+    activeCourses: 0,
+    totalTeachers: 0,
+  };
+
+  db.query("SELECT COUNT(*) AS cnt FROM courses", (err, courseCountRows) => {
+    if (err) throw err;
+    stats.totalCourses = courseCountRows?.[0]?.cnt ?? 0;
+
+    db.query(
+      "SELECT COUNT(DISTINCT course_id) AS cnt FROM teacher_courses WHERE status='approved'",
+      (err2, activeCourseRows) => {
+        if (err2) throw err2;
+        stats.activeCourses = activeCourseRows?.[0]?.cnt ?? 0;
+
+        db.query("SELECT COUNT(*) AS cnt FROM users WHERE role='teacher'", (err3, teacherCountRows) => {
+          if (err3) throw err3;
+          stats.totalTeachers = teacherCountRows?.[0]?.cnt ?? 0;
+
+          db.query(
+            "SELECT id, course_name FROM courses ORDER BY id DESC LIMIT 6",
+            (err4, recentCourses) => {
+              if (err4) throw err4;
+
+              db.query(
+                "SELECT id, username FROM users WHERE role='teacher' ORDER BY id DESC LIMIT 6",
+                (err5, recentTeachers) => {
+                  if (err5) throw err5;
+                  res.render("academic_coordinator_dashboard", {
+                    user: req.session.user,
+                    stats,
+                    recentCourses,
+                    recentTeachers,
+                  });
+                }
+              );
+            }
+          );
+        });
+      }
+    );
+  });
 });
 
 app.get("/admin/manage-users", requireRole("admin"), (req, res) => {
@@ -234,7 +276,21 @@ app.get("/admin/manage-users", requireRole("admin"), (req, res) => {
       const students = users.filter(u => u.role === 'student');
       const pendingTeachers = users.filter(u => u.role === 'teacher' && u.needs_password_setup === 1);
       const activeTeachers = users.filter(u => u.role === 'teacher' && u.needs_password_setup === 0);
-      res.render("admin_manage_users", { user: req.session.user, students, pendingTeachers, activeTeachers, courses });
+
+      db.query(
+        `SELECT tc.teacher_id, c.course_name
+         FROM teacher_courses tc
+         JOIN courses c ON c.id = tc.course_id`,
+        (err3, teacherCourseRows) => {
+          if (err3) throw err3;
+          const teacherCoursesMap = {};
+          (teacherCourseRows || []).forEach(r => {
+            if (!teacherCoursesMap[r.teacher_id]) teacherCoursesMap[r.teacher_id] = [];
+            teacherCoursesMap[r.teacher_id].push(r.course_name);
+          });
+          res.render("admin_manage_users", { user: req.session.user, students, pendingTeachers, activeTeachers, courses, teacherCoursesMap });
+        }
+      );
     });
   });
 });
@@ -247,7 +303,21 @@ app.get("/coordinator/manage-users", requireRole("academic_coordinator"), (req, 
       const students = users.filter(u => u.role === 'student');
       const pendingTeachers = users.filter(u => u.role === 'teacher' && u.needs_password_setup === 1);
       const activeTeachers = users.filter(u => u.role === 'teacher' && u.needs_password_setup === 0);
-      res.render("admin_manage_users", { user: req.session.user, students, pendingTeachers, activeTeachers, courses });
+
+      db.query(
+        `SELECT tc.teacher_id, c.course_name
+         FROM teacher_courses tc
+         JOIN courses c ON c.id = tc.course_id`,
+        (err3, teacherCourseRows) => {
+          if (err3) throw err3;
+          const teacherCoursesMap = {};
+          (teacherCourseRows || []).forEach(r => {
+            if (!teacherCoursesMap[r.teacher_id]) teacherCoursesMap[r.teacher_id] = [];
+            teacherCoursesMap[r.teacher_id].push(r.course_name);
+          });
+          res.render("admin_manage_users", { user: req.session.user, students, pendingTeachers, activeTeachers, courses, teacherCoursesMap });
+        }
+      );
     });
   });
 });

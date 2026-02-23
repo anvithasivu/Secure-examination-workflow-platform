@@ -101,6 +101,7 @@
                                 <thead>
                                     <tr>
                                         <th>Username</th>
+                                        <th>Course(s)</th>
                                         <th>Status</th>
                                         <th>Action</th>
                                     </tr>
@@ -110,6 +111,9 @@
                                         <tr>
                                             <td>
                                                 <%= teacher.username %>
+                                            </td>
+                                            <td>
+                                                <%= (teacherCoursesMap && teacherCoursesMap[teacher.id] && teacherCoursesMap[teacher.id].length > 0) ? teacherCoursesMap[teacher.id].join(', ') : '-' %>
                                             </td>
                                             <td>Active</td>
                                             <td>
@@ -125,6 +129,9 @@
                                         <tr>
                                             <td>
                                                 <%= teacher.username %>
+                                            </td>
+                                            <td>
+                                                <%= (teacherCoursesMap && teacherCoursesMap[teacher.id] && teacherCoursesMap[teacher.id].length > 0) ? teacherCoursesMap[teacher.id].join(', ') : '-' %>
                                             </td>
                                             <td>Pending Setup</td>
                                             <td>

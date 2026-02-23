@@ -19,16 +19,317 @@
         </div>
 
         <div class="container">
-            <h1 class="page-title">Academic Coordinator Dashboard</h1>
-            <p class="page-subtitle">Course setup and teacher account management.</p>
+            <div style="display:flex; align-items:flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+                <div>
+                    <h1 class="page-title" style="margin-bottom: 6px;">Academic Coordinator</h1>
+                    <div class="page-subtitle" style="margin: 0;">Course setup and teacher account management.</div>
+                </div>
+            </div>
 
-            <div class="grid">
+            <div class="grid" style="margin-top: 18px;">
                 <div class="col-12">
                     <div class="card">
-                        <h3 class="card-title">Management</h3>
-                        <div class="card-actions">
-                            <a href="/coordinator/manage-courses" class="btn">Manage Courses</a>
-                            <a href="/coordinator/manage-users" class="btn">Manage Users</a>
+                        <div style="display:flex; align-items:center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+                            <div>
+                                <div class="card-title" style="margin-bottom: 4px;">Management Workspace</div>
+                                <div style="opacity: 0.75;">Organize courses and manage user access in a structured workflow.</div>
+                            </div>
+                        </div>
+
+                        <div class="grid" style="margin-top: 14px;">
+                            <div class="col-4">
+                                <div class="card" style="margin: 0; background: var(--card);">
+                                    <div style="opacity: 0.75; font-weight: 700;">Total Courses</div>
+                                    <div style="font-size: 28px; font-weight: 900; margin-top: 6px;"><%= (stats && stats.totalCourses != null) ? stats.totalCourses : 0 %></div>
+                                    <div style="opacity: 0.7; margin-top: 6px;">All courses available in the platform.</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="card" style="margin: 0; background: var(--card);">
+                                    <div style="opacity: 0.75; font-weight: 700;">Active Courses</div>
+                                    <div style="font-size: 28px; font-weight: 900; margin-top: 6px;"><%= (stats && stats.activeCourses != null) ? stats.activeCourses : 0 %></div>
+                                    <div style="opacity: 0.7; margin-top: 6px;">Courses assigned to at least one teacher.</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="card" style="margin: 0; background: var(--card);">
+                                    <div style="opacity: 0.75; font-weight: 700;">Total Teachers</div>
+                                    <div style="font-size: 28px; font-weight: 900; margin-top: 6px;"><%= (stats && stats.totalTeachers != null) ? stats.totalTeachers : 0 %></div>
+                                    <div style="opacity: 0.7; margin-top: 6px;">Teacher accounts currently registered.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid" style="margin-top: 14px;">
+                            <div class="col-6">
+                                <div class="card" style="margin: 0;">
+                                    <div style="display:flex; align-items:flex-start; justify-content: space-between; gap: 12px;">
+                                        <div style="display:flex; gap: 12px; align-items:flex-start;">
+                                            <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(51, 105, 255, 0.10); display:flex; align-items:center; justify-content:center; flex: 0 0 auto;">
+                                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity: 0.9;">
+                                                    <path d="M4 19.5V6.5C4 5.67 4.67 5 5.5 5H20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                    <path d="M7 4.5H18.5C19.33 4.5 20 5.17 20 6V19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                    <path d="M7 8H17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                    <path d="M7 12H17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                    <path d="M7 16H13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <div style="font-weight: 900; font-size: 16px;">Manage Courses</div>
+                                                <div style="opacity: 0.75; margin-top: 6px; line-height: 1.5;">Add courses and view course structure to keep content organized and consistent across levels.</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div style="margin-top: 14px; display:flex; gap: 10px; flex-wrap: wrap;">
+                                        <a href="/coordinator/manage-courses" class="btn">Open Course Management</a>
+                                        <a href="#course_overview" class="btn btn-ghost">View Overview</a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-6">
+                                <div class="card" style="margin: 0;">
+                                    <div style="display:flex; align-items:flex-start; justify-content: space-between; gap: 12px;">
+                                        <div style="display:flex; gap: 12px; align-items:flex-start;">
+                                            <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(134, 80, 202, 0.10); display:flex; align-items:center; justify-content:center; flex: 0 0 auto;">
+                                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity: 0.9;">
+                                                    <path d="M16 11C17.66 11 19 9.66 19 8C19 6.34 17.66 5 16 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                    <path d="M8 11C6.34 11 5 9.66 5 8C5 6.34 6.34 5 8 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                    <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12Z" stroke="currentColor" stroke-width="2"/>
+                                                    <path d="M4 20C4 17.24 7.58 15 12 15C16.42 15 20 17.24 20 20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <div style="font-weight: 900; font-size: 16px;">Manage Users</div>
+                                                <div style="opacity: 0.75; margin-top: 6px; line-height: 1.5;">Create teacher accounts, review students/teachers, and maintain access control for assessments.</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div style="margin-top: 14px; display:flex; gap: 10px; flex-wrap: wrap;">
+                                        <a href="/coordinator/manage-users" class="btn">Open User Management</a>
+                                        <a href="#teacher_management" class="btn btn-ghost">View Overview</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12" id="course_overview">
+                    <div class="card">
+                        <div style="display:flex; align-items:center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+                            <div>
+                                <div class="card-title" style="margin-bottom: 6px;">Course Overview</div>
+                                <div style="opacity: 0.75;">Monitor course inventory and recent additions.</div>
+                            </div>
+                            <div class="card-actions">
+                                <a href="/coordinator/manage-courses" class="btn btn-secondary">Manage Courses</a>
+                            </div>
+                        </div>
+
+                        <div class="grid" style="margin-top: 14px;">
+                            <div class="col-6">
+                                <div class="card" style="margin: 0;">
+                                    <div style="font-weight: 900; margin-bottom: 10px;">Recently Added Courses</div>
+                                    <% if (recentCourses && recentCourses.length > 0) { %>
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Course</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <% recentCourses.forEach(c => { %>
+                                                    <tr>
+                                                        <td><%= c.course_name %></td>
+                                                    </tr>
+                                                <% }) %>
+                                            </tbody>
+                                        </table>
+                                    <% } else { %>
+                                        <div class="alert alert-empty">No courses found yet.</div>
+                                    <% } %>
+                                </div>
+                            </div>
+
+                            <div class="col-6">
+                                <div class="card" style="margin: 0;">
+                                    <div style="font-weight: 900; margin-bottom: 10px;">Quick Notes</div>
+                                    <div style="opacity: 0.75; line-height: 1.6;">Use course management to add new courses and keep naming consistent for students and teachers.</div>
+                                    <div style="margin-top: 12px;">
+                                        <a href="/coordinator/manage-courses" class="btn btn-ghost">Open Course Manager</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12" id="teacher_management">
+                    <div class="card">
+                        <div style="display:flex; align-items:center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+                            <div>
+                                <div class="card-title" style="margin-bottom: 6px;">Teacher Management</div>
+                                <div style="opacity: 0.75;">Create teacher accounts and track recent additions.</div>
+                            </div>
+                            <div class="card-actions">
+                                <a href="/coordinator/manage-users" class="btn btn-secondary">Manage Users</a>
+                            </div>
+                        </div>
+
+                        <div class="grid" style="margin-top: 14px;">
+                            <div class="col-6">
+                                <div class="card" style="margin: 0;">
+                                    <div style="font-weight: 900; margin-bottom: 10px;">Recently Added Teachers</div>
+                                    <% if (recentTeachers && recentTeachers.length > 0) { %>
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Username</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <% recentTeachers.forEach(t => { %>
+                                                    <tr>
+                                                        <td><%= t.username %></td>
+                                                    </tr>
+                                                <% }) %>
+                                            </tbody>
+                                        </table>
+                                    <% } else { %>
+                                        <div class="alert alert-empty">No teachers found yet.</div>
+                                    <% } %>
+                                </div>
+                            </div>
+
+                            <div class="col-6">
+                                <div class="card" style="margin: 0;">
+                                    <div style="font-weight: 900; margin-bottom: 10px;">Account Setup</div>
+                                    <div style="opacity: 0.75; line-height: 1.6;">New teachers can log in with the default credentials and will be prompted to set a new password.</div>
+                                    <div style="margin-top: 12px;">
+                                        <a href="/coordinator/manage-users" class="btn btn-ghost">Open User Manager</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-title" style="margin-bottom: 6px;">Quick Actions Panel</div>
+                        <div style="opacity: 0.75;">Common tasks you can perform quickly.</div>
+
+                        <div class="grid" style="margin-top: 14px;">
+                            <div class="col-4">
+                                <div class="card" style="margin: 0;">
+                                    <div style="display:flex; gap: 12px; align-items:flex-start;">
+                                        <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(51, 105, 255, 0.10); display:flex; align-items:center; justify-content:center; flex: 0 0 auto;">
+                                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity: 0.9;">
+                                                <path d="M12 5V19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                <path d="M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <div style="font-weight: 900;">Add Course</div>
+                                            <div style="opacity: 0.75; margin-top: 6px; line-height: 1.5;">Create a new course entry and keep the catalog up to date.</div>
+                                        </div>
+                                    </div>
+                                    <div style="margin-top: 12px;">
+                                        <a href="/coordinator/manage-courses" class="btn">Go to Add Course</a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-4">
+                                <div class="card" style="margin: 0;">
+                                    <div style="display:flex; gap: 12px; align-items:flex-start;">
+                                        <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(134, 80, 202, 0.10); display:flex; align-items:center; justify-content:center; flex: 0 0 auto;">
+                                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity: 0.9;">
+                                                <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12Z" stroke="currentColor" stroke-width="2"/>
+                                                <path d="M4 20C4 17.24 7.58 15 12 15C16.42 15 20 17.24 20 20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                <path d="M19 8V12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                <path d="M17 10H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <div style="font-weight: 900;">Add Teacher</div>
+                                            <div style="opacity: 0.75; margin-top: 6px; line-height: 1.5;">Create a new teacher account and assign them to a course.</div>
+                                        </div>
+                                    </div>
+                                    <div style="margin-top: 12px;">
+                                        <a href="/coordinator/manage-users" class="btn">Go to Add Teacher</a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-4">
+                                <div class="card" style="margin: 0;">
+                                    <div style="display:flex; gap: 12px; align-items:flex-start;">
+                                        <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(39, 174, 96, 0.10); display:flex; align-items:center; justify-content:center; flex: 0 0 auto;">
+                                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity: 0.9;">
+                                                <path d="M4 7H20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                <path d="M4 12H20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                <path d="M4 17H14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <div style="font-weight: 900;">View Course Assignments</div>
+                                            <div style="opacity: 0.75; margin-top: 6px; line-height: 1.5;">Review which teachers are assigned to each course.</div>
+                                        </div>
+                                    </div>
+                                    <div style="margin-top: 12px;">
+                                        <a href="/coordinator/manage-users?tab=teachers" class="btn btn-secondary">View Assignments</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-title" style="margin-bottom: 6px;">Recent Activity</div>
+                        <div style="opacity: 0.75;">Latest course additions and teacher account updates.</div>
+
+                        <div class="grid" style="margin-top: 14px;">
+                            <div class="col-6">
+                                <div class="card" style="margin: 0;">
+                                    <div style="font-weight: 900; margin-bottom: 10px;">Course Updates</div>
+                                    <% if (recentCourses && recentCourses.length > 0) { %>
+                                        <div style="display:flex; flex-direction: column; gap: 10px;">
+                                            <% recentCourses.slice(0, 4).forEach(c => { %>
+                                                <div style="display:flex; align-items:center; justify-content: space-between; gap: 12px;">
+                                                    <div style="font-weight: 800;"><%= c.course_name %></div>
+                                                    <a class="btn btn-ghost" href="/coordinator/manage-courses">Open</a>
+                                                </div>
+                                            <% }) %>
+                                        </div>
+                                    <% } else { %>
+                                        <div class="alert alert-empty">No recent course activity.</div>
+                                    <% } %>
+                                </div>
+                            </div>
+
+                            <div class="col-6">
+                                <div class="card" style="margin: 0;">
+                                    <div style="font-weight: 900; margin-bottom: 10px;">Teacher Additions</div>
+                                    <% if (recentTeachers && recentTeachers.length > 0) { %>
+                                        <div style="display:flex; flex-direction: column; gap: 10px;">
+                                            <% recentTeachers.slice(0, 4).forEach(t => { %>
+                                                <div style="display:flex; align-items:center; justify-content: space-between; gap: 12px;">
+                                                    <div style="font-weight: 800;"><%= t.username %></div>
+                                                    <a class="btn btn-ghost" href="/coordinator/manage-users">Open</a>
+                                                </div>
+                                            <% }) %>
+                                        </div>
+                                    <% } else { %>
+                                        <div class="alert alert-empty">No recent teacher activity.</div>
+                                    <% } %>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
