@@ -14,11 +14,6 @@
         <input type="radio" name="<%= q.id %>" value="3"> <%= q.option3 %><br>
         <input type="radio" name="<%= q.id %>" value="4"> <%= q.option4 %><br><br>
       <% } %>
-
-      <% if(q.coding_question && q.coding_question.trim() !== "") { %>
-        <p><strong>Coding: <%= q.coding_question %></strong></p>
-        <textarea name="<%= q.id %>" rows="5" cols="60" placeholder="Write your code here"></textarea><br><br>
-      <% } %>
     <% }) %>
 
     <button type="submit">Submit Exam</button>

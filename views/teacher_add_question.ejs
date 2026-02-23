@@ -5,7 +5,7 @@
 </head>
 <body>
   <h1>Add Question</h1>
-  <form action="/teacher/add-question" method="POST">
+  <form action="/add-question" method="POST">
     <label>Course:</label>
     <select name="course_id" required>
       <% courses.forEach(c => { %>
@@ -20,11 +20,7 @@
       <% } %>
     </select><br><br>
 
-    <label>Question Type:</label>
-    <select name="question_type" required>
-      <option value="mcq">MCQ</option>
-      <option value="coding">Coding</option>
-    </select><br><br>
+    <input type="hidden" name="question_type" value="mcq">
 
     <label>Question Text:</label><br>
     <textarea name="question_text"></textarea><br><br>

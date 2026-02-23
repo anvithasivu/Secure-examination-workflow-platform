@@ -2,10 +2,7 @@ const express = require("express");
 const mysql = require("mysql2");
 const session = require("express-session");
 const bcrypt = require("bcrypt");
-const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
-const crypto = require('crypto');
+
 
 const app = express();
 
@@ -36,44 +33,6 @@ db.connect(err => {
   console.log("Connected to MySQL DB");
   app.listen(3000, () => console.log("Server running on http://localhost:3000"));
 });
-
-function runCode(lang, code, input) {
-  const tmpDir = path.join(__dirname, 'tmp');
-  if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir);
-
-  const uuid = crypto.randomUUID();
-  const inputFile = path.join(tmpDir, `${uuid}.in`);
-  fs.writeFileSync(inputFile, input);
-
-  let output = '';
-  try {
-    if (lang === 'python') {
-      const srcFile = path.join(tmpDir, `${uuid}.py`);
-      fs.writeFileSync(srcFile, code);
-      output = execSync(`python "${srcFile}" < "${inputFile}"`, { encoding: 'utf-8', timeout: 3000, stdio: 'pipe' });
-    } else if (lang === 'javascript') {
-      const srcFile = path.join(tmpDir, `${uuid}.js`);
-      fs.writeFileSync(srcFile, code);
-      output = execSync(`node "${srcFile}" < "${inputFile}"`, { encoding: 'utf-8', timeout: 3000, stdio: 'pipe' });
-    } else if (lang === 'c++' || lang === 'c') {
-      const ext = lang === 'c' ? 'c' : 'cpp';
-      const compiler = lang === 'c' ? 'gcc' : 'g++';
-      const srcFile = path.join(tmpDir, `${uuid}.${ext}`);
-      const exeFile = path.join(tmpDir, `${uuid}.exe`);
-      fs.writeFileSync(srcFile, code);
-      execSync(`${compiler} "${srcFile}" -o "${exeFile}"`, { encoding: 'utf-8', timeout: 5000, stdio: 'pipe' });
-      output = execSync(`"${exeFile}" < "${inputFile}"`, { encoding: 'utf-8', timeout: 3000, stdio: 'pipe' });
-    } else if (lang === 'java') {
-      const srcFile = path.join(tmpDir, `Main.java`);
-      fs.writeFileSync(srcFile, code);
-      execSync(`javac "${srcFile}"`, { encoding: 'utf-8', timeout: 5000, stdio: 'pipe' });
-      output = execSync(`java -cp "${tmpDir}" Main < "${inputFile}"`, { encoding: 'utf-8', timeout: 3000, stdio: 'pipe' });
-    }
-  } catch (err) {
-    output = err.stdout ? err.stdout.toString() : (err.stderr ? err.stderr.toString() : err.message);
-  }
-  return output.trim();
-}
 
 // ----------------------
 // Login
@@ -515,26 +474,13 @@ app.get("/add-question", (req, res) => {
 });
 
 app.post("/add-question", (req, res) => {
-  const { course_id, level, question_type, question, option1, option2, option3, option4, correct, coding_question, starter_code, tc1_in, tc1_out, tc2_in, tc2_out, tc3_in, tc3_out } = req.body;
+  const { course_id, level, question, option1, option2, option3, option4, correct } = req.body;
 
-  if (question_type === "mcq") {
-    db.query(
-      "INSERT INTO questions (course_id, level, question, option1, option2, option3, option4, correct) VALUES (?,?,?,?,?,?,?,?)",
-      [course_id, level, question, option1, option2, option3, option4, correct],
-      err => { if (err) throw err; res.redirect("/add-question"); }
-    );
-  } else if (question_type === "coding") {
-    const testCases = JSON.stringify([
-      { input: tc1_in, output: tc1_out },
-      { input: tc2_in, output: tc2_out },
-      { input: tc3_in, output: tc3_out }
-    ]);
-    db.query(
-      "INSERT INTO questions (course_id, level, coding_question, starter_code, test_cases) VALUES (?,?,?,?,?)",
-      [course_id, level, coding_question, starter_code, testCases],
-      err => { if (err) throw err; res.redirect("/add-question"); }
-    );
-  } else res.send("Invalid question type");
+  db.query(
+    "INSERT INTO questions (course_id, level, question, option1, option2, option3, option4, correct) VALUES (?,?,?,?,?,?,?,?)",
+    [course_id, level, question, option1, option2, option3, option4, correct],
+    err => { if (err) throw err; res.redirect("/add-question"); }
+  );
 });
 
 // ----------------------
@@ -557,32 +503,25 @@ app.get("/view-questions", (req, res) => {
     if (err) throw err;
 
     let mcqQuery = "SELECT * FROM questions WHERE question IS NOT NULL";
-    let codingQuery = "SELECT * FROM questions WHERE coding_question IS NOT NULL";
     const params1 = [];
-    const params2 = [];
 
     if (req.session.user.role === "teacher") {
       mcqQuery += " AND course_id IN (SELECT course_id FROM teacher_courses WHERE teacher_id = ?)";
-      codingQuery += " AND course_id IN (SELECT course_id FROM teacher_courses WHERE teacher_id = ?)";
       params1.push(req.session.user.id);
-      params2.push(req.session.user.id);
     }
 
     if (selectedCourse != 0) {
-      mcqQuery += " AND course_id=?"; codingQuery += " AND course_id=?";
-      params1.push(selectedCourse); params2.push(selectedCourse);
+      mcqQuery += " AND course_id=?";
+      params1.push(selectedCourse);
     }
     if (selectedLevel != 0) {
-      mcqQuery += " AND level=?"; codingQuery += " AND level=?";
-      params1.push(selectedLevel); params2.push(selectedLevel);
+      mcqQuery += " AND level=?";
+      params1.push(selectedLevel);
     }
 
     db.query(mcqQuery, params1, (err, mcqQuestions) => {
       if (err) throw err;
-      db.query(codingQuery, params2, (err2, codingQuestions) => {
-        if (err2) throw err2;
-        res.render("view_questions", { mcqQuestions, codingQuestions, courses, selectedCourse, selectedLevel, user: req.session.user });
-      });
+      res.render("view_questions", { mcqQuestions, courses, selectedCourse, selectedLevel, user: req.session.user });
     });
   });
 });
@@ -627,8 +566,8 @@ app.get("/student-levels/:course_id", (req, res) => {
 
         results.forEach(r => {
           attemptsMap[r.level] = r.attempts;
-          // Assume score > 0 means cleared. Adjust threshold if needed.
-          if (r.score > 0 && r.level >= maxUnlocked) {
+          // Cleared if score (percentage) is >= 60
+          if (r.score >= 60 && r.level >= maxUnlocked) {
             maxUnlocked = r.level + 1;
           }
         });
@@ -644,55 +583,80 @@ app.post("/submit-exam", (req, res) => {
   const { course_id, level } = req.body;
   const user_id = req.session.user.id;
 
-  db.query("SELECT * FROM questions WHERE course_id=? AND level=?", [course_id, level], (err, questions) => {
+  db.query("SELECT * FROM courses WHERE id=?", [course_id], (err, courses) => {
     if (err) throw err;
+    const course = courses[0];
+    if (!course) return res.send("Course not found");
 
-    let totalScore = 0;
-    let allCorrect = true;
+    const courseName = course.course_name;
 
-    for (let q of questions) {
-      if (q.question) { // MCQ
-        const studentAns = req.body[`mcq_${q.id}`];
-        if (studentAns == q.correct) {
-          totalScore += 10;
-        } else {
-          allCorrect = false;
-        }
-      } else if (q.coding_question) { // Coding
-        const studentCode = req.body[`coding_${q.id}`];
-        const lang = req.body[`lang_${q.id}`];
-        let testCases = [];
-        try { testCases = JSON.parse(q.test_cases); } catch (e) { }
-
-        let passedAll = true;
-        for (let tc of testCases) {
-          if (!tc.input && !tc.output) continue;
-          const out = runCode(lang, studentCode || '', tc.input || '');
-          if (out !== (tc.output || '').trim()) {
-            passedAll = false;
-            break;
-          }
-        }
-        if (passedAll && testCases.length > 0) {
-          totalScore += 20;
-        } else {
-          allCorrect = false;
-        }
+    // We should only grade the questions that were actually in the exam
+    // The form sends mcq_ID fields, so we can iterate over body keys to find them
+    let questionIds = [];
+    for (let key in req.body) {
+      if (key.startsWith('mcq_')) {
+        questionIds.push(key.split('_')[1]);
       }
     }
 
-    db.query("SELECT * FROM results WHERE user_id=? AND course_id=? AND level=?", [user_id, course_id, level], (err, existing) => {
+    if (questionIds.length === 0) {
+      return res.send("No questions answered.");
+    }
+
+    db.query("SELECT * FROM questions WHERE id IN (?)", [questionIds], (err, questions) => {
       if (err) throw err;
-      if (existing.length > 0) {
-        db.query("UPDATE results SET score=?, attempts=attempts+1 WHERE user_id=? AND course_id=? AND level=?", [totalScore, user_id, course_id, level], err => {
-          res.redirect(`/student-levels/${course_id}`);
-        });
-      } else {
-        db.query("INSERT INTO results (user_id, course_id, level, score, attempts) VALUES (?,?,?,?, 1)", [user_id, course_id, level, totalScore], err => {
-          res.redirect(`/student-levels/${course_id}`);
-        });
+
+      let marksObtained = 0;
+      const totalQuestions = questions.length;
+
+      for (let q of questions) {
+        const studentAns = req.body[`mcq_${q.id}`];
+        if (studentAns) {
+          if (studentAns == q.correct) {
+            marksObtained += 1;
+          } else {
+            marksObtained -= 0.25;
+          }
+        }
       }
+
+      // Percentage calculation
+      const finalPercentage = totalQuestions > 0 ? (marksObtained / totalQuestions) * 100 : 0;
+      const pass_fail = (finalPercentage >= 60) ? 'Pass' : 'Fail';
+
+      db.query("SELECT * FROM results WHERE user_id=? AND course_id=? AND level=?", [user_id, course_id, level], (err, existing) => {
+        if (err) throw err;
+        if (existing.length > 0) {
+          db.query("UPDATE results SET score=?, attempts=attempts+1, pass_fail=? WHERE user_id=? AND course_id=? AND level=?", [Math.round(finalPercentage), pass_fail, user_id, course_id, level], err => {
+            if (err) throw err;
+            res.redirect(`/exam-result/${existing[0].id}`);
+          });
+        } else {
+          db.query("INSERT INTO results (user_id, course_id, level, score, attempts, pass_fail) VALUES (?,?,?,?,?,?)", [user_id, course_id, level, Math.round(finalPercentage), 1, pass_fail], (err, result) => {
+            if (err) throw err;
+            res.redirect(`/exam-result/${result.insertId}`);
+          });
+        }
+      });
     });
+  });
+});
+
+app.get("/exam-result/:result_id", (req, res) => {
+  if (!req.session.user) return res.redirect("/");
+  const resultId = req.params.result_id;
+
+  const query = `
+    SELECT results.*, courses.course_name 
+    FROM results 
+    JOIN courses ON results.course_id = courses.id 
+    WHERE results.id = ? AND results.user_id = ?
+  `;
+
+  db.query(query, [resultId, req.session.user.id], (err, rows) => {
+    if (err) throw err;
+    if (rows.length === 0) return res.send("Result not found");
+    res.render("student_exam_result", { result: rows[0] });
   });
 });
 
@@ -709,22 +673,26 @@ app.get("/exam/:course_id/:level", (req, res) => {
 
     const course = courseRows[0];
 
-    db.query(
-      "SELECT * FROM questions WHERE course_id=? AND level=? AND question IS NOT NULL ORDER BY RAND() LIMIT 2",
-      [courseId, level],
-      (err, mcqQuestions) => {
-        if (err) throw err;
+    db.query("SELECT * FROM results WHERE user_id=? AND course_id=?", [req.session.user.id, courseId], (err, results) => {
+      if (err) throw err;
 
-        db.query(
-          "SELECT * FROM questions WHERE course_id=? AND level=? AND coding_question IS NOT NULL ORDER BY RAND() LIMIT 2",
-          [courseId, level],
-          (err2, codingQuestions) => {
-            if (err2) throw err2;
+      let maxUnlocked = 1;
+      results.forEach(r => {
+        if (r.score >= 60 && r.level >= maxUnlocked) {
+          maxUnlocked = r.level + 1;
+        }
+      });
 
-            res.render("student_questions", { course, level, mcqQuestions, codingQuestions });
-          }
-        );
-      }
-    );
+      if (level > maxUnlocked) return res.redirect(`/student-levels/${courseId}`);
+
+      db.query(
+        "SELECT * FROM questions WHERE course_id=? AND level=? AND question IS NOT NULL ORDER BY RAND() LIMIT 10",
+        [courseId, level],
+        (err, mcqQuestions) => {
+          if (err) throw err;
+          res.render("student_questions", { course, level, mcqQuestions });
+        }
+      );
+    });
   });
 });

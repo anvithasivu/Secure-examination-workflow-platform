@@ -155,34 +155,7 @@
           <% }) %>
   </table>
 
-  <h2>Coding Questions</h2>
-  <table>
-    <tr>
-      <th>S.No</th>
-      <th>Question</th>
-      <th>Starter Code</th>
-      <th>Action</th>
-    </tr>
-    <% if(codingQuestions.length===0){ %>
-      <tr>
-        <td colspan="4" style="text-align:center;">No coding questions found</td>
-      </tr>
-      <% } %>
-        <% let counter2=1; codingQuestions.forEach(q=> { %>
-          <tr>
-            <td>
-              <%= counter2++ %>
-            </td>
-            <td>
-              <%= q.coding_question %>
-            </td>
-            <td>
-              <pre><%= q.starter_code %></pre>
-            </td>
-            <td><a href="/delete-question/<%= q.id %>" class="delete">Delete</a></td>
-          </tr>
-          <% }) %>
-  </table>
+  <!-- Removed Coding Questions table as per MCQ-only redesign -->
 
   <!-- Back to dashboard dynamically -->
   <a href="<%= user.role === 'admin' ? '/admin' : '/teacher-dashboard' %>" class="back-btn">← Back to Dashboard</a>

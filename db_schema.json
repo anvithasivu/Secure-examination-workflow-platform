@@ -1,6 +1,9 @@
 {
   "tables": [
     {
+      "Tables_in_secure_exam": "course_levels"
+    },
+    {
       "Tables_in_secure_exam": "courses"
     },
     {
@@ -81,6 +84,22 @@
       "Null": "YES",
       "Key": "",
       "Default": "1",
+      "Extra": ""
+    },
+    {
+      "Field": "attempts",
+      "Type": "int",
+      "Null": "YES",
+      "Key": "",
+      "Default": "0",
+      "Extra": ""
+    },
+    {
+      "Field": "pass_fail",
+      "Type": "varchar(10)",
+      "Null": "YES",
+      "Key": "",
+      "Default": "Pending",
       "Extra": ""
     }
   ],
@@ -186,6 +205,14 @@
       "Type": "int",
       "Null": "YES",
       "Key": "MUL",
+      "Default": null,
+      "Extra": ""
+    },
+    {
+      "Field": "test_cases",
+      "Type": "text",
+      "Null": "YES",
+      "Key": "",
       "Default": null,
       "Extra": ""
     }

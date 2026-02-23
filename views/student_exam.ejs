@@ -5,25 +5,13 @@
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; }
     h1 { color: #333; }
-    .question { margin-bottom: 20px; padding: 15px; border-radius: 8px; background: #f9f9f9; border: 1px solid #ccc; }
-    h3 { margin-bottom: 10px; }
-    textarea { width: 100%; height: 100px; margin-top: 5px; }
     button { margin-top: 15px; padding: 10px 20px; background: #007BFF; color: white; border: none; border-radius: 5px; cursor: pointer; }
     button:hover { background: #0056b3; }
   </style>
 </head>
 <body>
-  <h1>Course: <%= courseId %> | Level: <%= level %></h1>
-
-  <form method="POST" action="/submit-exam/<%= courseId %>/<%= level %>">
-    <% codingQuestions.forEach((q, index) => { %>
-      <div class="question">
-        <h3>Coding Q<%= index+1 %>: <%= q.coding_question %></h3>
-        <textarea name="coding_<%= q.id %>" placeholder="Write your code here..."><%= q.starter_code %></textarea>
-      </div>
-    <% }) %>
-
-    <button type="submit">Submit Exam</button>
-  </form>
+  <h1>MCQ Exam</h1>
+  <p>This platform supports MCQ-based examinations only.</p>
+  <a href="/student-dashboard"><button type="button">Go to Dashboard</button></a>
 </body>
 </html>

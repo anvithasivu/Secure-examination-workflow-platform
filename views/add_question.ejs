@@ -3,18 +3,12 @@
 
 <head>
   <title>Add Question</title>
-  <script>
-    function toggleFields() {
-      const type = document.getElementById("question_type").value;
-      document.getElementById("mcq_fields").style.display = (type === 'mcq') ? 'block' : 'none';
-      document.getElementById("coding_fields").style.display = (type === 'coding') ? 'block' : 'none';
-    }
-  </script>
   <style>
     body {
       font-family: 'Arial', sans-serif;
       background-color: #e6e6fa;
       color: #4a235a;
+
       padding: 20px;
     }
 
@@ -96,35 +90,15 @@
           <% } %>
     </select>
 
-    <label>Question Type:</label>
-    <select id="question_type" name="question_type" onchange="toggleFields()" required>
-      <option value="">--Select--</option>
-      <option value="mcq">MCQ</option>
-      <option value="coding">Coding</option>
-    </select>
+    <input type="hidden" name="question_type" value="mcq">
 
-    <div id="mcq_fields" style="display:none;">
-      <label>Question:</label><textarea name="question"></textarea>
-      <input type="text" name="option1" placeholder="Option 1">
-      <input type="text" name="option2" placeholder="Option 2">
-      <input type="text" name="option3" placeholder="Option 3">
-      <input type="text" name="option4" placeholder="Option 4">
-      <input type="number" name="correct" min="1" max="4" placeholder="Correct Option">
-    </div>
-
-    <div id="coding_fields" style="display:none;">
-      <label>Coding Question:</label><textarea name="coding_question"></textarea>
-      <label>Starter Code:</label><textarea name="starter_code"></textarea>
-
-      <h4>Test Cases (Required for Coding Questions)</h4>
-      <label>Test Case 1 Input:</label><textarea name="tc1_in"></textarea>
-      <label>Test Case 1 Expected Output:</label><textarea name="tc1_out"></textarea>
-
-      <label>Test Case 2 Input:</label><textarea name="tc2_in"></textarea>
-      <label>Test Case 2 Expected Output:</label><textarea name="tc2_out"></textarea>
-
-      <label>Test Case 3 Input:</label><textarea name="tc3_in"></textarea>
-      <label>Test Case 3 Expected Output:</label><textarea name="tc3_out"></textarea>
+    <div id="mcq_fields">
+      <label>Question:</label><textarea name="question" required></textarea>
+      <input type="text" name="option1" placeholder="Option 1" required>
+      <input type="text" name="option2" placeholder="Option 2" required>
+      <input type="text" name="option3" placeholder="Option 3" required>
+      <input type="text" name="option4" placeholder="Option 4" required>
+      <input type="number" name="correct" min="1" max="4" placeholder="Correct Option" required>
     </div>
 
     <button type="submit">Add Question</button>
