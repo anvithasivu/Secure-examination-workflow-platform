@@ -563,6 +563,7 @@ app.get("/student-levels/:course_id", (req, res) => {
 
         let maxUnlocked = 1;
         let attemptsMap = {};
+        let clearedMap = {};
 
         results.forEach(r => {
           attemptsMap[r.level] = r.attempts;
@@ -570,9 +571,12 @@ app.get("/student-levels/:course_id", (req, res) => {
           if (r.score >= 60 && r.level >= maxUnlocked) {
             maxUnlocked = r.level + 1;
           }
+          if (r.score >= 60) {
+            clearedMap[r.level] = true;
+          }
         });
 
-        res.render("student_levels", { course, levels: levelRows, maxUnlocked, attemptsMap });
+        res.render("student_levels", { course, levels: levelRows, maxUnlocked, attemptsMap, clearedMap });
       });
     });
   });
@@ -677,13 +681,18 @@ app.get("/exam/:course_id/:level", (req, res) => {
       if (err) throw err;
 
       let maxUnlocked = 1;
+      let alreadyClearedThisLevel = false;
       results.forEach(r => {
+        if (r.level === level && r.score >= 60) {
+          alreadyClearedThisLevel = true;
+        }
         if (r.score >= 60 && r.level >= maxUnlocked) {
           maxUnlocked = r.level + 1;
         }
       });
 
       if (level > maxUnlocked) return res.redirect(`/student-levels/${courseId}`);
+      if (alreadyClearedThisLevel) return res.redirect(`/student-levels/${courseId}`);
 
       db.query(
         "SELECT * FROM questions WHERE course_id=? AND level=? AND question IS NOT NULL ORDER BY RAND() LIMIT 10",

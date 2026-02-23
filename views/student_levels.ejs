@@ -4,112 +4,80 @@
 <head>
   <title>Levels - <%= course.course_name %>
   </title>
-  <style>
-    body {
-      font-family: 'Arial', sans-serif;
-      margin: 20px;
-      background-color: #e6e6fa;
-      color: #4a235a;
-    }
-
-    h1,
-    h2 {
-      color: #716499;
-    }
-
-    .level-card {
-      display: inline-block;
-      width: 150px;
-      margin: 10px;
-      padding: 15px;
-      background-color: #fdfefe;
-      border-radius: 12px;
-      box-shadow: 0 5px 15px rgba(100, 80, 150, 0.1);
-      text-align: center;
-      text-decoration: none;
-      color: #4a235a;
-      transition: 0.3s;
-    }
-
-    .level-card:hover {
-      background-color: #e8daef;
-      box-shadow: 0 10px 20px rgba(100, 80, 150, 0.2);
-    }
-
-    .level-title {
-      font-weight: bold;
-      font-size: 16px;
-      color: #716499;
-    }
-
-    .logout {
-      float: right;
-      background-color: #ffc4d9;
-      color: #4a235a;
-      font-weight: bold;
-      padding: 8px 15px;
-      text-decoration: none;
-      border-radius: 6px;
-      transition: 0.3s;
-    }
-
-    .logout:hover {
-      background-color: #ff99b9;
-    }
-
-    .back {
-      margin-top: 20px;
-      display: inline-block;
-      background-color: #b8c0ff;
-      color: #4a235a;
-      font-weight: bold;
-      padding: 8px 12px;
-      text-decoration: none;
-      border-radius: 6px;
-      transition: 0.3s;
-    }
-
-    .back:hover {
-      background-color: #9ba7f5;
-      color: #fff;
-    }
-  </style>
+  <link rel="stylesheet" href="/style.css">
 </head>
 
 <body>
-  <a href="/logout" class="logout">Logout</a>
-  <h1>Course: <%= course.course_name %>
-  </h1>
-  <h2>Select a Level</h2>
+  <div class="app-shell">
+    <div class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="/student-dashboard">Secure Exam</a>
+        <div class="nav-group">
+          <a class="btn btn-ghost" href="/student-dashboard">Courses</a>
+          <a class="btn btn-danger" href="/logout">Logout</a>
+        </div>
+      </div>
+    </div>
 
-  <div>
-    <% levels.forEach(level=> {
-      let i = level.level_number;
-      let isUnlocked = i <= maxUnlocked; let attemptInfo=attemptsMap[i] || 0; %>
-        <% if (isUnlocked) { %>
-          <a href="/exam/<%= course.id %>/<%= i %>" class="level-card" style="border: 2px solid #b8c0ff;">
-            <div class="level-title">
-              <%= level.level_name %>
-            </div>
-            <div>
-              Level <%= i %>
-            </div>
-            <div style="margin-top: 10px; font-size: 12px; color: #716499;">Attempts: <%= attemptInfo %>
-            </div>
-          </a>
-          <% } else { %>
-            <div class="level-card"
-              style="background-color: #f7f1fa; border: 1px solid #c9b1de; cursor: not-allowed; opacity: 0.7;">
-              <div class="level-title" style="color: #716499;">
-                <%= level.level_name %> 🔒
+    <div class="container">
+      <h1 class="page-title"><%= course.course_name %></h1>
+      <p class="page-subtitle">Select a level to begin the timed MCQ assessment.</p>
+
+      <div class="grid">
+        <% levels.forEach(level=> {
+          let i = level.level_number;
+          let attemptInfo = attemptsMap[i] || 0;
+          let isCleared = (clearedMap && clearedMap[i]) ? true : false;
+          let isUnlocked = i <= maxUnlocked; %>
+
+          <% if (isCleared) { %>
+            <div class="col-3">
+              <div class="card" style="border: 1px solid rgba(39, 174, 96, 0.4);">
+                <h3 class="card-title"><%= level.level_name %></h3>
+                <div style="display:flex; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+                  <div>Level <%= i %></div>
+                  <div class="text-pass" style="font-weight: 800;">Cleared</div>
+                </div>
+                <div style="margin-top: 10px; opacity: 0.85;">Attempts: <%= attemptInfo %></div>
+                <div style="margin-top: 12px;">
+                  <span class="btn btn-ghost" style="pointer-events:none; opacity: 0.7;">Completed</span>
+                </div>
               </div>
-              <div style="color: #716499;">Locked</div>
             </div>
-            <% } %>
-              <% }) %>
-  </div>
+          <% } else if (isUnlocked) { %>
+            <div class="col-3">
+              <a href="/exam/<%= course.id %>/<%= i %>" class="card" style="display:block; text-decoration:none; color:inherit;">
+                <h3 class="card-title"><%= level.level_name %></h3>
+                <div style="display:flex; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+                  <div>Level <%= i %></div>
+                  <div style="font-weight: 800; opacity: 0.8;">Unlocked</div>
+                </div>
+                <div style="margin-top: 10px; opacity: 0.85;">Attempts: <%= attemptInfo %></div>
+                <div style="margin-top: 12px;">
+                  <span class="btn btn-ghost" style="pointer-events:none;">Start</span>
+                </div>
+              </a>
+            </div>
+          <% } else { %>
+            <div class="col-3">
+              <div class="card" style="opacity: 0.7; background: #f7f1fa;">
+                <h3 class="card-title"><%= level.level_name %></h3>
+                <div style="display:flex; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+                  <div>Level <%= i %></div>
+                  <div style="font-weight: 800; opacity: 0.8;">Locked</div>
+                </div>
+                <div style="margin-top: 10px; opacity: 0.85;">Attempts: <%= attemptInfo %></div>
+              </div>
+            </div>
+          <% } %>
+        <% }) %>
+      </div>
 
-  <a href="/student-dashboard" class="back">Back to Courses</a>
+      <div>
+        <a href="/student-dashboard" class="btn btn-secondary">Back to Courses</a>
+      </div>
+    </div>
+  </div>
 </body>
 
 </html>

@@ -2,30 +2,51 @@
 <html>
 <head>
   <title>Student Results</title>
-  <style>
-    table { border-collapse: collapse; width: 80%; margin: 20px auto; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-    th { background-color: #007BFF; color: white; }
-  </style>
+  <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-  <h1>Student Results</h1>
-  <table>
-    <tr>
-      <th>Student</th>
-      <th>Course</th>
-      <th>Level</th>
-      <th>Score</th>
-    </tr>
-    <% results.forEach(r => { %>
-      <tr>
-        <td><%= r.student_name %></td>
-        <td><%= r.course_name %></td>
-        <td><%= r.level %></td>
-        <td><%= r.score %></td>
-      </tr>
-    <% }) %>
-  </table>
-  <a href="/teacher-dashboard">Back to Dashboard</a>
+  <div class="app-shell">
+    <div class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="/teacher-dashboard">Secure Exam</a>
+        <div class="nav-group">
+          <a class="btn btn-ghost" href="/teacher-dashboard">Dashboard</a>
+          <a class="btn btn-danger" href="/logout">Logout</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <h1 class="page-title">Student Results</h1>
+      <p class="page-subtitle">Course-wise and level-wise performance overview.</p>
+
+      <div class="card">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Course</th>
+              <th>Level</th>
+              <th>Score</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% results.forEach(r => { %>
+              <tr>
+                <td><%= r.student_name %></td>
+                <td><%= r.course_name %></td>
+                <td><%= r.level %></td>
+                <td><%= r.score %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+
+      <div style="margin-top: 16px;">
+        <a href="/teacher-dashboard" class="btn btn-secondary">Back to Dashboard</a>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

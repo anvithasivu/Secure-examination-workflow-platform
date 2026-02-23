@@ -3,84 +3,7 @@
 
 <head>
   <title>Exam - Level <%= level %> (Course: <%= course.course_name %>)</title>
-  <style>
-    body {
-      font-family: 'Arial', sans-serif;
-      margin: 20px;
-      background-color: #e6e6fa;
-      color: #4a235a;
-    }
-
-    h1,
-    h2 {
-      margin-top: 20px;
-      color: #716499;
-    }
-
-    .question-box {
-      background-color: #fdfefe;
-      padding: 15px;
-      margin-bottom: 20px;
-      border-radius: 12px;
-      box-shadow: 0 5px 15px rgba(100, 80, 150, 0.1);
-    }
-
-    .options-list {
-      list-style-type: none;
-      padding: 0;
-    }
-
-    .options-list li {
-      margin-bottom: 10px;
-    }
-
-    #timer {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background-color: #ffc4d9;
-      padding: 15px;
-      border-radius: 8px;
-      font-weight: bold;
-      font-size: 1.2em;
-      box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
-      z-index: 1000;
-    }
-
-    button {
-      padding: 12px 20px;
-      border: none;
-      border-radius: 6px;
-      background-color: #b8c0ff;
-      color: #4a235a;
-      font-weight: bold;
-      cursor: pointer;
-      margin-top: 15px;
-      font-size: 16px;
-      transition: 0.3s;
-    }
-
-    button:hover {
-      background-color: #9ba7f5;
-      color: #fff;
-    }
-
-    .back {
-      display: inline-block;
-      margin-top: 20px;
-      padding: 10px 15px;
-      background-color: #ffc4d9;
-      color: #4a235a;
-      font-weight: bold;
-      border-radius: 6px;
-      text-decoration: none;
-      transition: 0.3s;
-    }
-
-    .back:hover {
-      background-color: #ff99b9;
-    }
-  </style>
+  <link rel="stylesheet" href="/style.css">
   <script>
     let timeLeft = 600; // 10 minutes in seconds
     function updateTimer() {
@@ -99,40 +22,54 @@
 </head>
 
 <body>
-  <div id="timer">Time Left: 10:00</div>
-  <h1>Exam - Level <%= level %> (Course: <%= course.course_name %>)</h1>
-
-  <form id="examForm" action="/submit-exam" method="POST">
-    <input type="hidden" name="course_id" value="<%= course.id %>">
-    <input type="hidden" name="level" value="<%= level %>">
-
-    <h2>Questions</h2>
-    <% mcqQuestions.forEach((q, index)=> { %>
-      <div class="question-box">
-        <p><strong>Q<%= index+1 %>:</strong>
-          <%= q.question %>
-        </p>
-        <ul class="options-list">
-          <li><input type="radio" name="mcq_<%= q.id %>" value="1" id="q<%= q.id %>_1"> <label for="q<%= q.id %>_1">
-              <%= q.option1 %>
-            </label></li>
-          <li><input type="radio" name="mcq_<%= q.id %>" value="2" id="q<%= q.id %>_2"> <label for="q<%= q.id %>_2">
-              <%= q.option2 %>
-            </label></li>
-          <li><input type="radio" name="mcq_<%= q.id %>" value="3" id="q<%= q.id %>_3"> <label for="q<%= q.id %>_3">
-              <%= q.option3 %>
-            </label></li>
-          <li><input type="radio" name="mcq_<%= q.id %>" value="4" id="q<%= q.id %>_4"> <label for="q<%= q.id %>_4">
-              <%= q.option4 %>
-            </label></li>
-        </ul>
+  <div class="app-shell">
+    <div class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="/student-dashboard">Secure Exam</a>
+        <div class="nav-group">
+          <a class="btn btn-ghost" href="/student-levels/<%= course.id %>">Levels</a>
+          <a class="btn btn-danger" href="/logout">Logout</a>
+        </div>
       </div>
-      <% }) %>
+    </div>
 
-        <button type="submit">Submit Exam</button>
-  </form>
+    <div class="container">
+      <div style="display:flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap;">
+        <div>
+          <h1 class="page-title"><%= course.course_name %> - <%= "Level " + level %></h1>
+          <p class="page-subtitle">Timed MCQ assessment. Negative marking applies.</p>
+        </div>
+        <div class="card" style="padding: 12px 14px;">
+          <div id="timer" style="font-weight: 800;">Time Left: 10:00</div>
+        </div>
+      </div>
 
-  <a href="/student-levels/<%= course.id %>" class="back">Back to Levels</a>
+      <form id="examForm" action="/submit-exam" method="POST">
+        <input type="hidden" name="course_id" value="<%= course.id %>">
+        <input type="hidden" name="level" value="<%= level %>">
+
+        <div class="stack">
+          <% mcqQuestions.forEach((q, index)=> { %>
+            <div class="card">
+              <h3 class="card-title">Q<%= index+1 %></h3>
+              <div style="margin-bottom: 10px;"><%= q.question %></div>
+              <div class="stack" style="gap: 8px;">
+                <label><input type="radio" name="mcq_<%= q.id %>" value="1"> <%= q.option1 %></label>
+                <label><input type="radio" name="mcq_<%= q.id %>" value="2"> <%= q.option2 %></label>
+                <label><input type="radio" name="mcq_<%= q.id %>" value="3"> <%= q.option3 %></label>
+                <label><input type="radio" name="mcq_<%= q.id %>" value="4"> <%= q.option4 %></label>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+
+        <div style="margin-top: 16px;" class="row">
+          <a href="/student-levels/<%= course.id %>" class="btn btn-secondary">Back to Levels</a>
+          <button type="submit" class="btn">Submit Exam</button>
+        </div>
+      </form>
+    </div>
+  </div>
 </body>
 
 </html>

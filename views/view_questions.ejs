@@ -3,83 +3,7 @@
 
 <head>
   <title>View Questions</title>
-  <style>
-    body {
-      font-family: 'Arial', sans-serif;
-      background-color: #e6e6fa;
-      color: #4a235a;
-      padding: 20px;
-    }
-
-    h1,
-    h2 {
-      color: #716499;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-      background-color: #fdfefe;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    th,
-    td {
-      padding: 12px;
-      border: 1px solid #c9b1de;
-      text-align: left;
-    }
-
-    th {
-      background-color: #b8c0ff;
-      color: #4a235a;
-    }
-
-    tr:nth-child(even) {
-      background-color: #f7f1fa;
-    }
-
-    a.delete {
-      color: #d279a6;
-      text-decoration: none;
-      font-weight: bold;
-      transition: 0.3s;
-    }
-
-    a.delete:hover {
-      text-decoration: underline;
-      color: #b05282;
-    }
-
-    select {
-      padding: 10px;
-      margin-right: 10px;
-      border-radius: 6px;
-      border: 1px solid #c9b1de;
-      background-color: #fdfefe;
-      color: #4a235a;
-      outline: none;
-    }
-
-    label {
-      color: #716499;
-      font-weight: bold;
-    }
-
-    a.back-btn {
-      display: inline-block;
-      margin-top: 20px;
-      color: #716499;
-      font-weight: bold;
-      text-decoration: none;
-    }
-
-    a.back-btn:hover {
-      text-decoration: underline;
-    }
-  </style>
+  <link rel="stylesheet" href="/style.css">
   <script>
     function filterQuestions() {
       const course = document.getElementById("courseFilter").value;
@@ -90,75 +14,99 @@
 </head>
 
 <body>
-  <h1>View Questions</h1>
+  <div class="app-shell">
+    <div class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="<%= user.role === 'admin' ? '/admin' : '/teacher-dashboard' %>">Secure Exam</a>
+        <div class="nav-group">
+          <a class="btn btn-ghost" href="<%= user.role === 'admin' ? '/admin' : '/teacher-dashboard' %>">Dashboard</a>
+          <a class="btn btn-danger" href="/logout">Logout</a>
+        </div>
+      </div>
+    </div>
 
-  <label>Course:</label>
-  <select id="courseFilter" onchange="filterQuestions()">
-    <option value="0">-- All Courses --</option>
-    <% courses.forEach(c=> { %>
-      <option value="<%= c.id %>" <%=selectedCourse==c.id ? "selected" : "" %>><%= c.course_name %>
-      </option>
-      <% }) %>
-  </select>
+    <div class="container">
+      <h1 class="page-title">Question Bank</h1>
+      <p class="page-subtitle">Filter by course and level to manage MCQ questions.</p>
 
-  <label>Level:</label>
-  <select id="levelFilter" onchange="filterQuestions()">
-    <option value="0">-- All Levels --</option>
-    <% for(let i=1;i<=10;i++){ %>
-      <option value="<%= i %>" <%=selectedLevel==i ? "selected" : "" %>>Level <%= i %>
-      </option>
-      <% } %>
-  </select>
+      <div class="card">
+        <div class="row">
+          <div>
+            <label><strong>Course</strong></label>
+            <select class="field" id="courseFilter" onchange="filterQuestions()">
+              <option value="0">-- All Courses --</option>
+              <% courses.forEach(c=> { %>
+                <option value="<%= c.id %>" <%=selectedCourse==c.id ? "selected" : "" %>><%= c.course_name %></option>
+              <% }) %>
+            </select>
+          </div>
 
-  <h2>MCQ Questions</h2>
-  <table>
-    <tr>
-      <th>S.No</th>
-      <th>Question</th>
-      <th>Option 1</th>
-      <th>Option 2</th>
-      <th>Option 3</th>
-      <th>Option 4</th>
-      <th>Correct</th>
-      <th>Action</th>
-    </tr>
-    <% if(mcqQuestions.length===0){ %>
-      <tr>
-        <td colspan="8" style="text-align:center;">No MCQs found</td>
-      </tr>
-      <% } %>
-        <% let counter=1; mcqQuestions.forEach(q=> { %>
+          <div>
+            <label><strong>Level</strong></label>
+            <select class="field" id="levelFilter" onchange="filterQuestions()">
+              <option value="0">-- All Levels --</option>
+              <% for(let i=1;i<=10;i++){ %>
+                <option value="<%= i %>" <%=selectedLevel==i ? "selected" : "" %>>Level <%= i %></option>
+              <% } %>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top: 16px;">
+        <h3 class="card-title">MCQ Questions</h3>
+        <table class="table">
           <tr>
-            <td>
-              <%= counter++ %>
-            </td>
-            <td>
-              <%= q.question %>
-            </td>
-            <td>
-              <%= q.option1 %>
-            </td>
-            <td>
-              <%= q.option2 %>
-            </td>
-            <td>
-              <%= q.option3 %>
-            </td>
-            <td>
-              <%= q.option4 %>
-            </td>
-            <td>
-              <%= q.correct %>
-            </td>
-            <td><a href="/delete-question/<%= q.id %>" class="delete">Delete</a></td>
+            <th>S.No</th>
+            <th>Question</th>
+            <th>Option 1</th>
+            <th>Option 2</th>
+            <th>Option 3</th>
+            <th>Option 4</th>
+            <th>Correct</th>
+            <th>Action</th>
           </tr>
+          <% if(mcqQuestions.length===0){ %>
+            <tr>
+              <td colspan="8" style="text-align:center;">No MCQs found</td>
+            </tr>
+          <% } %>
+          <% let counter=1; mcqQuestions.forEach(q=> { %>
+            <tr>
+              <td>
+                <%= counter++ %>
+              </td>
+              <td>
+                <%= q.question %>
+              </td>
+              <td>
+                <%= q.option1 %>
+              </td>
+              <td>
+                <%= q.option2 %>
+              </td>
+              <td>
+                <%= q.option3 %>
+              </td>
+              <td>
+                <%= q.option4 %>
+              </td>
+              <td>
+                <%= q.correct %>
+              </td>
+              <td>
+                <a href="/delete-question/<%= q.id %>" class="btn btn-danger" style="padding: 8px 10px;">Delete</a>
+              </td>
+            </tr>
           <% }) %>
-  </table>
+        </table>
+      </div>
 
-  <!-- Removed Coding Questions table as per MCQ-only redesign -->
-
-  <!-- Back to dashboard dynamically -->
-  <a href="<%= user.role === 'admin' ? '/admin' : '/teacher-dashboard' %>" class="back-btn">← Back to Dashboard</a>
+      <div style="margin-top: 16px;">
+        <a href="<%= user.role === 'admin' ? '/admin' : '/teacher-dashboard' %>" class="btn btn-secondary">Back to Dashboard</a>
+      </div>
+    </div>
+  </div>
 </body>
 
 </html>

@@ -3,120 +3,56 @@
 
 <head>
     <title>View Results</title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #e6e6fa;
-            color: #4a235a;
-            margin: 0;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 40px auto;
-            background-color: #e8daef;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(100, 80, 150, 0.2);
-        }
-
-        h2 {
-            color: #716499;
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            background-color: #fdfefe;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        table,
-        th,
-        td {
-            border: 1px solid #c9b1de;
-        }
-
-        th,
-        td {
-            text-align: left;
-            padding: 12px;
-        }
-
-        th {
-            background-color: #b8c0ff;
-            color: #4a235a;
-        }
-
-        tr:nth-child(even) {
-            background-color: #f7f1fa;
-        }
-
-        .btn-back {
-            display: inline-block;
-            margin-bottom: 20px;
-            text-decoration: none;
-            color: #fff;
-            background-color: #c9b1de;
-            padding: 10px 15px;
-            border-radius: 6px;
-            font-weight: bold;
-            transition: 0.3s;
-        }
-
-        .btn-back:hover {
-            background-color: #b8c0ff;
-            color: #4a235a;
-        }
-    </style>
+    <link rel="stylesheet" href="/style.css">
 </head>
 
 <body>
 
-    <div class="container">
-        <a href="<%= user.role === 'admin' ? '/admin' : '/teacher-dashboard' %>" class="btn-back">&larr; Back to
-            Dashboard</a>
-        <h2>Student Results Overview</h2>
+    <div class="app-shell">
+        <div class="topbar">
+            <div class="topbar-inner">
+                <a class="brand" href="<%= user.role === 'admin' ? '/admin' : '/teacher-dashboard' %>">Secure Exam</a>
+                <div class="nav-group">
+                    <a class="btn btn-ghost" href="<%= user.role === 'admin' ? '/admin' : '/teacher-dashboard' %>">Dashboard</a>
+                    <a class="btn btn-danger" href="/logout">Logout</a>
+                </div>
+            </div>
+        </div>
 
-        <% if (results && results.length> 0) { %>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Student Username</th>
-                        <th>Course</th>
-                        <th>Level</th>
-                        <th>Score</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <% results.forEach(result=> { %>
+        <div class="container">
+            <h1 class="page-title">Student Results</h1>
+            <p class="page-subtitle">Course-wise and level-wise performance overview.</p>
+
+            <% if (results && results.length> 0) { %>
+                <table class="table">
+                    <thead>
                         <tr>
-                            <td>
-                                <%= result.username %>
-                            </td>
-                            <td>
-                                <%= result.course_name %>
-                            </td>
-                            <td>
-                                <%= result.level %>
-                            </td>
-                            <td>
-                                <%= result.score %>
-                            </td>
+                            <th>Student Username</th>
+                            <th>Course</th>
+                            <th>Level</th>
+                            <th>Score</th>
                         </tr>
+                    </thead>
+                    <tbody>
+                        <% results.forEach(result=> { %>
+                            <tr>
+                                <td><%= result.username %></td>
+                                <td><%= result.course_name %></td>
+                                <td><%= result.level %></td>
+                                <td><%= result.score %></td>
+                            </tr>
                         <% }) %>
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
             <% } else { %>
-                <p style="text-align: center; color: #666;">No results found.</p>
-                <% } %>
-    </div>
+                <div style="opacity: 0.8;">No results found.</div>
+            <% } %>
 
+            <div style="margin-top: 16px;">
+                <a href="<%= user.role === 'admin' ? '/admin' : '/teacher-dashboard' %>" class="btn btn-secondary">Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>

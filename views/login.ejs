@@ -3,91 +3,57 @@
 
 <head>
   <title>SecureExam Pro - Login</title>
-  <style>
-    body {
-      font-family: 'Arial', sans-serif;
-      background-color: #e6e6fa;
-      /* Lavender */
-      color: #4a235a;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
-
-    .login-container {
-      background-color: #e8daef;
-      /* Pastel Purple Lighter */
-      padding: 40px;
-      border-radius: 12px;
-      box-shadow: 0 5px 15px rgba(100, 80, 150, 0.2);
-      width: 350px;
-    }
-
-    .login-container h1 {
-      text-align: center;
-      margin-bottom: 30px;
-      color: #716499;
-    }
-
-    input[type="text"],
-    input[type="password"] {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 20px;
-      border-radius: 6px;
-      border: 1px solid #c9b1de;
-      background-color: #fdfefe;
-      color: #4a235a;
-      outline: none;
-      box-sizing: border-box;
-    }
-
-    button {
-      width: 100%;
-      padding: 12px;
-      border: none;
-      border-radius: 6px;
-      background-color: #b8c0ff;
-      /* Pastel Blue */
-      color: #4a235a;
-      font-weight: bold;
-      font-size: 16px;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-
-    button:hover {
-      background-color: #9ba7f5;
-    }
-
-    .forgot {
-      text-align: right;
-      display: block;
-      margin-bottom: 20px;
-      font-size: 12px;
-      color: #716499;
-      text-decoration: none;
-    }
-
-    .forgot:hover {
-      text-decoration: underline;
-    }
-  </style>
+  <link rel="stylesheet" href="/style.css">
 </head>
 
 <body>
-  <div class="login-container">
-    <h1>SecureExam Pro</h1>
-    <form action="/login" method="POST">
-      <input type="text" name="username" placeholder="Institutional Email" required>
-      <input type="password" name="password" placeholder="Password" required>
-      <a href="#" class="forgot">Forgot?</a>
-      <button type="submit">Sign In to Portal &rarr;</button>
-    </form>
-    <div style="text-align: center; margin-top: 20px;">
-      <a href="/signup" class="forgot" style="text-align: center; font-size: 14px;">New user? Sign up</a>
+  <div class="auth-shell">
+    <div class="card auth-card">
+      <div class="auth-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M7 4h10a2 2 0 0 1 2 2v14H7a2 2 0 0 0-2 2V6a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M7 16h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M9 8h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M9 12h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </div>
+
+      <h1 class="page-title" style="margin-top: 0;">Secure Exam</h1>
+      <p class="page-subtitle" style="margin-bottom: 0;">Academic examination workflow platform</p>
+
+      <div class="tabs" role="tablist" aria-label="Authentication">
+        <a class="tab active" href="/login" role="tab" aria-selected="true">Login</a>
+        <a class="tab" href="/signup" role="tab" aria-selected="false">New User</a>
+      </div>
+
+      <div style="text-align: left;">
+        <h3 class="card-title" style="margin-bottom: 6px;">Welcome Back</h3>
+        <div style="opacity: 0.9; margin-bottom: 14px;">Sign in with your registered credentials to continue.</div>
+
+        <form action="/login" method="POST" class="stack">
+          <div class="input-icon">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6Z" stroke="currentColor" stroke-width="1.8"/>
+              <path d="m4.5 7.5 7 5a2 2 0 0 0 2.3 0l7-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <input class="field" type="text" name="username" placeholder="Institutional Email" required>
+          </div>
+
+          <div class="input-icon">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M7 11V8a5 5 0 0 1 10 0v3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              <path d="M6 11h12a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <input class="field" type="password" name="password" placeholder="Password" required>
+          </div>
+
+          <button class="btn" type="submit" style="width: 100%; border-radius: 999px; padding: 12px 14px;">Sign In</button>
+        </form>
+
+        <div style="margin-top: 12px; display: flex; justify-content: flex-end;">
+          <a href="#" class="btn btn-ghost" style="padding: 6px 10px; font-size: 13px;">Forgot Password?</a>
+        </div>
+      </div>
     </div>
   </div>
 </body>

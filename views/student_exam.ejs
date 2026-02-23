@@ -2,16 +2,29 @@
 <html>
 <head>
   <title>Exam</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    h1 { color: #333; }
-    button { margin-top: 15px; padding: 10px 20px; background: #007BFF; color: white; border: none; border-radius: 5px; cursor: pointer; }
-    button:hover { background: #0056b3; }
-  </style>
+  <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-  <h1>MCQ Exam</h1>
-  <p>This platform supports MCQ-based examinations only.</p>
-  <a href="/student-dashboard"><button type="button">Go to Dashboard</button></a>
+  <div class="app-shell">
+    <div class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="/student-dashboard">Secure Exam</a>
+        <div class="nav-group">
+          <a class="btn btn-ghost" href="/student-dashboard">Dashboard</a>
+          <a class="btn btn-danger" href="/logout">Logout</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="card" style="max-width: 720px; margin: 24px auto; text-align: center;">
+        <h1 class="page-title">MCQ Exam</h1>
+        <p class="page-subtitle">This platform supports MCQ-based examinations only.</p>
+        <div class="card-actions" style="justify-content: center;">
+          <a href="/student-dashboard" class="btn">Go to Dashboard</a>
+        </div>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

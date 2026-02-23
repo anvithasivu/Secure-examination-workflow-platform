@@ -3,109 +3,72 @@
 
 <head>
   <title>Add Question</title>
-  <style>
-    body {
-      font-family: 'Arial', sans-serif;
-      background-color: #e6e6fa;
-      color: #4a235a;
-
-      padding: 20px;
-    }
-
-    h1,
-    h4 {
-      color: #716499;
-    }
-
-    label {
-      font-weight: bold;
-      color: #716499;
-    }
-
-    input,
-    select,
-    textarea {
-      width: 100%;
-      margin: 5px 0 15px 0;
-      padding: 12px;
-      border-radius: 6px;
-      border: 1px solid #c9b1de;
-      background-color: #fdfefe;
-      color: #4a235a;
-      outline: none;
-      box-sizing: border-box;
-    }
-
-    button {
-      background-color: #b8c0ff;
-      color: #4a235a;
-      border: none;
-      padding: 12px 20px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 16px;
-      font-weight: bold;
-      transition: 0.3s;
-      width: 100%;
-    }
-
-    button:hover {
-      background-color: #9ba7f5;
-      color: #fff;
-    }
-
-    a {
-      display: inline-block;
-      margin-top: 15px;
-      text-decoration: none;
-      color: #716499;
-      font-weight: bold;
-    }
-
-    a:hover {
-      text-decoration: underline;
-    }
-  </style>
+  <link rel="stylesheet" href="/style.css">
 </head>
 
 <body>
-  <h1>Add Question</h1>
-
-  <form action="/add-question" method="POST">
-    <label>Course:</label>
-    <select name="course_id" required>
-      <% courses.forEach(c=> { %>
-        <option value="<%= c.id %>" <%=preCourseId==c.id ? 'selected' : '' %>>
-          <%= c.course_name %>
-        </option>
-        <% }) %>
-    </select>
-
-    <label>Level:</label>
-    <select name="level" required>
-      <% let maxL=10; if(preCourseId !=0) { const c=courses.find(cr=> cr.id == preCourseId); if(c) maxL = c.levels; } %>
-        <% for(let i=1; i<=maxL; i++) { %>
-          <option value="<%= i %>" <%=preLevelNum==i ? 'selected' : '' %>>Level <%= i %>
-          </option>
-          <% } %>
-    </select>
-
-    <input type="hidden" name="question_type" value="mcq">
-
-    <div id="mcq_fields">
-      <label>Question:</label><textarea name="question" required></textarea>
-      <input type="text" name="option1" placeholder="Option 1" required>
-      <input type="text" name="option2" placeholder="Option 2" required>
-      <input type="text" name="option3" placeholder="Option 3" required>
-      <input type="text" name="option4" placeholder="Option 4" required>
-      <input type="number" name="correct" min="1" max="4" placeholder="Correct Option" required>
+  <div class="app-shell">
+    <div class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="<%= user.role === 'admin' ? '/admin' : '/teacher-dashboard' %>">Secure Exam</a>
+        <div class="nav-group">
+          <a class="btn btn-ghost" href="<%= user.role === 'admin' ? '/admin' : '/teacher-dashboard' %>">Dashboard</a>
+          <a class="btn btn-danger" href="/logout">Logout</a>
+        </div>
+      </div>
     </div>
 
-    <button type="submit">Add Question</button>
-  </form>
+    <div class="container">
+      <h1 class="page-title">Add MCQ Question</h1>
+      <p class="page-subtitle">Select a course and level, then add an MCQ question.</p>
 
-  <!-- Back to dashboard dynamically -->
-  <a href="<%= user.role === 'admin' ? '/admin' : '/teacher-dashboard' %>">← Back to Dashboard</a>
+      <div class="card" style="max-width: 760px; margin: 0 auto;">
+        <form action="/add-question" method="POST" class="stack">
+          <div class="row">
+            <div>
+              <label><strong>Course</strong></label>
+              <select class="field" name="course_id" required>
+                <% courses.forEach(c=> { %>
+                  <option value="<%= c.id %>" <%=preCourseId==c.id ? 'selected' : '' %>><%= c.course_name %></option>
+                <% }) %>
+              </select>
+            </div>
+
+            <div>
+              <label><strong>Level</strong></label>
+              <select class="field" name="level" required>
+                <% let maxL=10; if(preCourseId !=0) { const c=courses.find(cr=> cr.id == preCourseId); if(c) maxL = c.levels; } %>
+                <% for(let i=1; i<=maxL; i++) { %>
+                  <option value="<%= i %>" <%=preLevelNum==i ? 'selected' : '' %>>Level <%= i %></option>
+                <% } %>
+              </select>
+            </div>
+          </div>
+
+          <input type="hidden" name="question_type" value="mcq">
+
+          <div id="mcq_fields" class="stack">
+            <div>
+              <label><strong>Question</strong></label>
+              <textarea class="field" name="question" required></textarea>
+            </div>
+
+            <input class="field" type="text" name="option1" placeholder="Option 1" required>
+            <input class="field" type="text" name="option2" placeholder="Option 2" required>
+            <input class="field" type="text" name="option3" placeholder="Option 3" required>
+            <input class="field" type="text" name="option4" placeholder="Option 4" required>
+            <input class="field" type="number" name="correct" min="1" max="4" placeholder="Correct Option (1-4)" required>
+          </div>
+
+          <button type="submit" class="btn">Add Question</button>
+        </form>
+      </div>
+
+      <div style="margin-top: 16px;">
+        <a href="<%= user.role === 'admin' ? '/admin' : '/teacher-dashboard' %>" class="btn btn-secondary">Back to Dashboard</a>
+      </div>
+    </div>
+  </div>
 </body>
 
 </html>

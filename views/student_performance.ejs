@@ -3,115 +3,70 @@
 
 <head>
     <title>Your Performance</title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #e6e6fa;
-            color: #4a235a;
-            padding: 20px;
-        }
-
-        h1 {
-            color: #716499;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            background-color: #fdfefe;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(100, 80, 150, 0.1);
-        }
-
-        th,
-        td {
-            padding: 12px;
-            border: 1px solid #c9b1de;
-            text-align: left;
-        }
-
-        th {
-            background-color: #b8c0ff;
-            color: #4a235a;
-        }
-
-        tr:nth-child(even) {
-            background-color: #f7f1fa;
-        }
-
-        .pass {
-            color: #27ae60;
-            font-weight: bold;
-        }
-
-        .fail {
-            color: #e74c3c;
-            font-weight: bold;
-        }
-
-        .back-btn {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 10px 15px;
-            background-color: #b8c0ff;
-            color: #4a235a;
-            font-weight: bold;
-            border-radius: 6px;
-            text-decoration: none;
-            transition: 0.3s;
-        }
-
-        .back-btn:hover {
-            background-color: #9ba7f5;
-            color: #fff;
-        }
-    </style>
+    <link rel="stylesheet" href="/style.css">
 </head>
 
 <body>
-    <h1>Your Performance</h1>
+    <div class="app-shell">
+        <div class="topbar">
+            <div class="topbar-inner">
+                <a class="brand" href="/student-dashboard">Secure Exam</a>
+                <div class="nav-group">
+                    <a class="btn btn-ghost" href="/student-dashboard">Dashboard</a>
+                    <a class="btn btn-danger" href="/logout">Logout</a>
+                </div>
+            </div>
+        </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Course</th>
-                <th>Level</th>
-                <th>Score</th>
-                <th>Attempts</th>
-                <th>Result</th>
-            </tr>
-        </thead>
-        <tbody>
-            <% if (results.length===0) { %>
-                <tr>
-                    <td colspan="5" style="text-align: center;">No results found.</td>
-                </tr>
-                <% } else { %>
-                    <% results.forEach(r=> { %>
+        <div class="container">
+            <h1 class="page-title">Your Performance</h1>
+            <p class="page-subtitle">Review your scores and attempts by course and level.</p>
+
+            <div class="card">
+                <table class="table">
+                    <thead>
                         <tr>
-                            <td>
-                                <%= r.course_name %>
-                            </td>
-                            <td>Level <%= r.level %>
-                            </td>
-                            <td>
-                                <%= r.score %> / 100
-                            </td>
-                            <td>
-                                <%= r.attempts %>
-                            </td>
-                            <td class="<%= r.score >= 60 ? 'pass' : 'fail' %>">
-                                <%= r.score>= 60 ? 'Cleared' : 'Not Cleared' %>
-                            </td>
+                            <th>Course</th>
+                            <th>Level</th>
+                            <th>Score</th>
+                            <th>Attempts</th>
+                            <th>Result</th>
                         </tr>
-                        <% }) %>
-                            <% } %>
-        </tbody>
-    </table>
+                    </thead>
+                    <tbody>
+                        <% if (results.length===0) { %>
+                            <tr>
+                                <td colspan="5" style="text-align: center;">No results found.</td>
+                            </tr>
+                            <% } else { %>
+                                <% results.forEach(r=> { %>
+                                    <tr>
+                                        <td>
+                                            <%= r.course_name %>
+                                        </td>
+                                        <td>Level <%= r.level %>
+                                        </td>
+                                        <td>
+                                            <%= r.score %> / 100
+                                        </td>
+                                        <td>
+                                            <%= r.attempts %>
+                                        </td>
+                                        <td class="<%= r.score >= 60 ? 'text-pass' : 'text-fail' %>" style="font-weight: 800;">
+                                            <%= r.score>= 60 ? 'Cleared' : 'Not Cleared' %>
+                                        </td>
+                                    </tr>
+                                    <% }) %>
+                                <% } %>
+                    </tbody>
+                </table>
+            </div>
 
-    <a href="/student-dashboard" class="back-btn">Back to Dashboard</a>
+            <div style="margin-top: 16px;">
+                <a href="/student-dashboard" class="btn btn-secondary">Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>

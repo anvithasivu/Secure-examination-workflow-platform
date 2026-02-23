@@ -3,76 +3,30 @@
 
 <head>
     <title>Pending Approval</title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #e6e6fa;
-            color: #4a235a;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            text-align: center;
-        }
-
-        .container {
-            background-color: #e8daef;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(100, 80, 150, 0.2);
-            max-width: 400px;
-        }
-
-        h2 {
-            color: #716499;
-        }
-
-        p {
-            color: #4a235a;
-            line-height: 1.6;
-        }
-
-        .btn-retry {
-            display: inline-block;
-            margin-top: 20px;
-            text-decoration: none;
-            font-weight: bold;
-            color: #4a235a;
-            background-color: #b8c0ff;
-            padding: 10px 20px;
-            border-radius: 6px;
-            transition: 0.3s;
-        }
-
-        .btn-retry:hover {
-            background-color: #9ba7f5;
-            color: #fff;
-        }
-
-        a.logout {
-            display: block;
-            margin-top: 15px;
-            color: #ff99b9;
-            font-weight: bold;
-            text-decoration: none;
-            font-size: 14px;
-            transition: 0.3s;
-        }
-
-        a.logout:hover {
-            color: #ff80a6;
-        }
-    </style>
+    <link rel="stylesheet" href="/style.css">
 </head>
 
 <body>
-    <div class="container">
-        <h2>Account Status: Pending</h2>
-        <p>Your request is currently under review by an Administrator.</p>
-        <p>Please check back later once your account or course assignment has been approved.</p>
-        <a href="/teacher-dashboard" class="btn-retry">Check Status</a>
-        <a href="/logout" class="logout">Logout</a>
+    <div class="app-shell">
+        <div class="topbar">
+            <div class="topbar-inner">
+                <a class="brand" href="/teacher-dashboard">Secure Exam</a>
+                <div class="nav-group">
+                    <a class="btn btn-danger" href="/logout">Logout</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="card" style="max-width: 520px; margin: 24px auto; text-align:center;">
+                <h1 class="page-title">Approval Pending</h1>
+                <p class="page-subtitle">Your request is under review by an administrator.</p>
+                <div class="card-actions" style="justify-content:center;">
+                    <a href="/teacher-dashboard" class="btn">Check Status</a>
+                    <a href="/logout" class="btn btn-secondary">Logout</a>
+                </div>
+            </div>
+        </div>
     </div>
 </body>
 

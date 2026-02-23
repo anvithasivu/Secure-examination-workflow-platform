@@ -3,83 +3,39 @@
 
 <head>
   <title>Student Dashboard</title>
-  <style>
-    body {
-      font-family: 'Arial', sans-serif;
-      background-color: #e6e6fa;
-      margin: 20px;
-      color: #4a235a;
-    }
-
-    h1,
-    h2 {
-      color: #716499;
-    }
-
-    .course-card {
-      display: inline-block;
-      width: 220px;
-      margin: 10px;
-      padding: 15px;
-      background-color: #fdfefe;
-      border-radius: 12px;
-      box-shadow: 0 5px 15px rgba(100, 80, 150, 0.1);
-      text-align: center;
-      text-decoration: none;
-      color: #4a235a;
-      transition: 0.3s;
-    }
-
-    .course-card:hover {
-      background-color: #e8daef;
-      box-shadow: 0 10px 20px rgba(100, 80, 150, 0.2);
-    }
-
-    .course-title {
-      font-weight: bold;
-      font-size: 18px;
-      margin-bottom: 8px;
-      color: #716499;
-    }
-
-    .course-levels {
-      font-size: 14px;
-      color: #716499;
-    }
-
-    .logout {
-      float: right;
-      background-color: #ffc4d9;
-      color: #4a235a;
-      font-weight: bold;
-      padding: 8px 15px;
-      text-decoration: none;
-      border-radius: 6px;
-      transition: 0.3s;
-    }
-
-    .logout:hover {
-      background-color: #ff99b9;
-    }
-  </style>
+  <link rel="stylesheet" href="/style.css">
 </head>
 
 <body>
-  <a href="/logout" class="logout">Logout</a>
-  <h1>Welcome, <%= user.username %>
-  </h1>
-  <h2>Select a Course</h2>
+  <div class="app-shell">
+    <div class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="/student-dashboard">Secure Exam</a>
+        <div class="nav-group">
+          <a class="btn btn-ghost" href="/student-dashboard">Dashboard</a>
+          <a class="btn btn-danger" href="/logout">Logout</a>
+        </div>
+      </div>
+    </div>
 
-  <div>
-    <% courses.forEach(c=> { %>
-      <a href="/student-levels/<%= c.id %>" class="course-card">
-        <div class="course-title">
-          <%= c.course_name %>
-        </div>
-        <div class="course-levels">Levels: <%= c.levels %>
-        </div>
-      </a>
-      <% }) %>
+    <div class="container">
+      <h1 class="page-title">Welcome, <%= user.username %></h1>
+      <p class="page-subtitle">Select a Course</p>
+
+      <div class="grid">
+        <% courses.forEach(c=> { %>
+          <div class="col-4">
+            <a href="/student-levels/<%= c.id %>" class="card" style="display:block; text-decoration:none; color:inherit;">
+              <h3 class="card-title"><%= c.course_name %></h3>
+              <div>Levels: <%= c.levels %></div>
+              <div style="margin-top: 12px;">
+                <span class="btn btn-ghost" style="pointer-events:none;">View Levels</span>
+              </div>
+            </a>
+          </div>
+        <% }) %>
+      </div>
+    </div>
   </div>
 </body>
 

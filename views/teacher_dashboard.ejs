@@ -3,112 +3,46 @@
 
 <head>
   <title>Teacher Dashboard</title>
-  <style>
-    body {
-      font-family: 'Arial', sans-serif;
-      background-color: #e6e6fa;
-      color: #4a235a;
-      margin: 20px;
-    }
-
-    h1,
-    h2 {
-      color: #716499;
-    }
-
-    .actions {
-      margin-top: 20px;
-    }
-
-    .actions a {
-      display: inline-block;
-      margin-right: 15px;
-      padding: 10px 15px;
-      background-color: #b8c0ff;
-      color: #4a235a;
-      font-weight: bold;
-      border-radius: 6px;
-      text-decoration: none;
-      transition: 0.3s;
-    }
-
-    .actions a:hover {
-      background-color: #9ba7f5;
-      color: #fff;
-    }
-
-    .courses {
-      margin-top: 30px;
-      display: flex;
-      flex-wrap: wrap;
-    }
-
-    .course-card {
-      background-color: #fdfefe;
-      border-radius: 12px;
-      box-shadow: 0 5px 15px rgba(100, 80, 150, 0.1);
-      padding: 15px;
-      margin: 10px;
-      width: 200px;
-      text-align: center;
-      transition: 0.3s;
-      color: #4a235a;
-    }
-
-    .course-card:hover {
-      background-color: #e8daef;
-      box-shadow: 0 10px 20px rgba(100, 80, 150, 0.2);
-    }
-
-    .course-title {
-      font-weight: bold;
-      font-size: 16px;
-      margin-bottom: 8px;
-      color: #716499;
-    }
-
-    a.logout {
-      display: inline-block;
-      margin-top: 20px;
-      background-color: #ffc4d9;
-      color: #4a235a;
-      font-weight: bold;
-      padding: 8px 15px;
-      border-radius: 6px;
-      text-decoration: none;
-      transition: 0.3s;
-    }
-
-    a.logout:hover {
-      background-color: #ff99b9;
-    }
-  </style>
+  <link rel="stylesheet" href="/style.css">
 </head>
 
 <body>
-  <div style="display: flex; justify-content: space-between; align-items: center;">
-    <h1>Welcome, <%= user.username %>
-    </h1>
-    <a href="/logout" class="logout">Logout</a>
-  </div>
-
-  <h2>Your Courses</h2>
-  <div class="courses">
-    <% courses.forEach(c=> { %>
-      <div class="course-card">
-        <div class="course-title">
-          <%= c.course_name %>
-        </div>
-        <div style="display: flex; gap: 5px; justify-content: center; margin-top: 10px;">
-          <a href="/course/<%= c.id %>/manage"
-            style="text-decoration: none; background-color: #b8c0ff; color: #4a235a; padding: 5px 10px; border-radius: 4px; font-size: 12px; font-weight: bold;">Manage
-            Course</a>
-          <a href="/view-results?course_id=<%= c.id %>"
-            style="text-decoration: none; background-color: #c9b1de; color: #4a235a; padding: 5px 10px; border-radius: 4px; font-size: 12px; font-weight: bold;">View
-            Results</a>
+  <div class="app-shell">
+    <div class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="/teacher-dashboard">Secure Exam</a>
+        <div class="nav-group">
+          <a class="btn btn-ghost" href="/teacher-dashboard">Dashboard</a>
+          <a class="btn btn-danger" href="/logout">Logout</a>
         </div>
       </div>
-      <% }) %>
+    </div>
+
+    <div class="container">
+      <h1 class="page-title">Teacher Dashboard</h1>
+      <p class="page-subtitle">Create MCQs, manage course levels, and review results.</p>
+
+      <div class="grid">
+        <div class="col-12">
+          <div class="card">
+            <h3 class="card-title">Your Courses</h3>
+            <div class="grid">
+              <% courses.forEach(c=> { %>
+                <div class="col-4">
+                  <div class="card">
+                    <h4 class="card-title"><%= c.course_name %></h4>
+                    <div class="card-actions">
+                      <a class="btn" href="/course/<%= c.id %>/manage">Manage</a>
+                      <a class="btn btn-secondary" href="/view-results?course_id=<%= c.id %>">Results</a>
+                    </div>
+                  </div>
+                </div>
+              <% }) %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </body>
 
