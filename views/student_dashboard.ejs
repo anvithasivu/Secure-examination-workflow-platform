@@ -22,12 +22,19 @@
       <h1 class="page-title">Welcome, <%= user.username %></h1>
       <p class="page-subtitle">Select a Course</p>
 
-      <div class="grid">
+      <div class="card" style="margin-bottom: 16px;">
+        <div class="row">
+          <input id="courseSearch" class="field" type="text" placeholder="Search courses..." oninput="filterCourses()">
+        </div>
+      </div>
+
+      <div class="grid" id="courseGrid">
         <% courses.forEach(c=> { %>
           <div class="col-4">
-            <a href="/student-levels/<%= c.id %>" class="card" style="display:block; text-decoration:none; color:inherit;">
+            <a href="/student-levels/<%= c.id %>" class="card" data-course-name="<%= String(c.course_name || '').toLowerCase() %>" style="display:block; text-decoration:none; color:inherit;">
               <h3 class="card-title"><%= c.course_name %></h3>
               <div>Levels: <%= c.levels %></div>
+              <div style="margin-top: 6px; opacity: 0.9; font-weight: 800;">Completion: <%= (progressByCourse && progressByCourse[c.id] != null) ? progressByCourse[c.id] : 0 %>%</div>
               <div style="margin-top: 12px;">
                 <span class="btn btn-ghost" style="pointer-events:none;">View Levels</span>
               </div>
@@ -35,6 +42,22 @@
           </div>
         <% }) %>
       </div>
+
+      <script>
+        function filterCourses() {
+          const input = document.getElementById('courseSearch');
+          const grid = document.getElementById('courseGrid');
+          if (!input || !grid) return;
+          const q = (input.value || '').toLowerCase().trim();
+          const cards = grid.querySelectorAll('a[data-course-name]');
+          cards.forEach(a => {
+            const name = a.getAttribute('data-course-name') || '';
+            const show = !q || name.includes(q);
+            const col = a.closest('.col-4');
+            if (col) col.style.display = show ? '' : 'none';
+          });
+        }
+      </script>
     </div>
   </div>
 </body>

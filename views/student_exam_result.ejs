@@ -13,7 +13,7 @@
             <div class="topbar-inner">
                 <a class="brand" href="/student-dashboard">Secure Exam</a>
                 <div class="nav-group">
-                    <a class="btn btn-ghost" href="/student-levels/<%= result.course_id %>">Levels</a>
+                    <a class="btn btn-ghost" href="/student-dashboard">Dashboard</a>
                     <a class="btn btn-danger" href="/logout">Logout</a>
                 </div>
             </div>
@@ -21,32 +21,20 @@
 
         <div class="container">
             <h1 class="page-title">Exam Result</h1>
-            <p class="page-subtitle"><%= result.course_name %> - Level <%= result.level %></p>
+            <p class="page-subtitle"><%= result.course_name %></p>
 
             <div class="grid">
                 <div class="col-12">
                     <div class="card">
                         <h3 class="card-title">Score</h3>
                         <div style="font-size: 40px; font-weight: 900;"><%= result.score %>%</div>
-                        <div class="<%= result.score >= 60 ? 'text-pass' : 'text-fail' %>" style="margin-top: 8px; font-weight: 800;">
-                            <%= result.score >= 60 ? 'Level Cleared' : 'Level Not Cleared' %>
-                        </div>
                     </div>
                 </div>
 
                 <div class="col-12">
                     <div class="card">
-                        <h3 class="card-title">Details</h3>
-                        <div class="grid">
-                            <div class="col-6"><strong>Course:</strong> <%= result.course_name %></div>
-                            <div class="col-6"><strong>Level:</strong> <%= result.level %></div>
-                            <div class="col-6"><strong>Attempts:</strong> <%= result.attempts %></div>
-                            <div class="col-6"><strong>Pass Mark:</strong> 60%</div>
-                        </div>
-
-                        <div style="margin-top: 16px;" class="card-actions">
-                            <a href="/student-levels/<%= result.course_id %>" class="btn">Return to Levels</a>
-                            <a href="/student-dashboard" class="btn btn-secondary">Back to Courses</a>
+                        <div class="card-actions">
+                            <a href="/student-levels/<%= result.course_id %>" class="btn btn-secondary">Back to Course</a>
                         </div>
                     </div>
                 </div>

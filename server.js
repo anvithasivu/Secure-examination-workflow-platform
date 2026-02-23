@@ -6,6 +6,20 @@ const bcrypt = require("bcrypt");
 
 const app = express();
 
+function requireRole(role) {
+  return (req, res, next) => {
+    if (!req.session.user || req.session.user.role !== role) return res.redirect("/");
+    next();
+  };
+}
+
+function requireAnyRole(roles) {
+  return (req, res, next) => {
+    if (!req.session.user || !roles.includes(req.session.user.role)) return res.redirect("/");
+    next();
+  };
+}
+
 // Middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
@@ -67,6 +81,7 @@ app.post("/login", (req, res) => {
 
       // Redirect by role
       if (user.role === "admin") return res.redirect("/admin");
+      if (user.role === "academic_coordinator") return res.redirect("/coordinator");
       if (user.role === "teacher") {
         db.query("SELECT * FROM teacher_courses WHERE teacher_id=?", [user.id], (err, courses) => {
           if (err) throw err;
@@ -153,8 +168,14 @@ app.get("/admin", (req, res) => {
   res.render("admin_dashboard", { user: req.session.user });
 });
 
-app.get("/admin/manage-users", (req, res) => {
-  if (!req.session.user || req.session.user.role !== "admin") return res.redirect("/");
+// ----------------------
+// Academic Coordinator Dashboard
+// ----------------------
+app.get("/coordinator", requireRole("academic_coordinator"), (req, res) => {
+  res.render("academic_coordinator_dashboard", { user: req.session.user });
+});
+
+app.get("/admin/manage-users", requireRole("admin"), (req, res) => {
   db.query("SELECT * FROM users", (err, users) => {
     if (err) throw err;
     db.query("SELECT * FROM courses", (err2, courses) => {
@@ -167,8 +188,20 @@ app.get("/admin/manage-users", (req, res) => {
   });
 });
 
-app.post("/admin/add-teacher", (req, res) => {
-  if (!req.session.user || req.session.user.role !== "admin") return res.redirect("/");
+app.get("/coordinator/manage-users", requireRole("academic_coordinator"), (req, res) => {
+  db.query("SELECT * FROM users", (err, users) => {
+    if (err) throw err;
+    db.query("SELECT * FROM courses", (err2, courses) => {
+      if (err2) throw err2;
+      const students = users.filter(u => u.role === 'student');
+      const pendingTeachers = users.filter(u => u.role === 'teacher' && u.needs_password_setup === 1);
+      const activeTeachers = users.filter(u => u.role === 'teacher' && u.needs_password_setup === 0);
+      res.render("admin_manage_users", { user: req.session.user, students, pendingTeachers, activeTeachers, courses });
+    });
+  });
+});
+
+app.post("/coordinator/add-teacher", requireRole("academic_coordinator"), (req, res) => {
   const { username, course_id } = req.body;
   const role = 'teacher';
   const status = 'active';
@@ -186,23 +219,13 @@ app.post("/admin/add-teacher", (req, res) => {
       // Assign to course immediately
       db.query("INSERT INTO teacher_courses (teacher_id, course_id, status) VALUES (?, ?, 'approved')", [teacher_id, course_id], err2 => {
         if (err2) throw err2;
-        res.redirect("/admin/manage-users");
+        res.redirect("/coordinator/manage-users");
       });
     });
   });
 });
 
-app.post("/admin/approve-user", (req, res) => {
-  if (!req.session.user || req.session.user.role !== "admin") return res.redirect("/");
-  const { user_id } = req.body;
-  db.query("UPDATE users SET status='active' WHERE id=?", [user_id], err => {
-    if (err) throw err;
-    res.redirect("/admin/manage-users");
-  });
-});
-
-app.post("/admin/delete-user", (req, res) => {
-  if (!req.session.user || req.session.user.role !== "admin") return res.redirect("/");
+app.post("/admin/delete-user", requireAnyRole(["admin", "academic_coordinator"]), (req, res) => {
   const { user_id } = req.body;
 
   // Also delete associated results, etc. if user is student
@@ -212,14 +235,14 @@ app.post("/admin/delete-user", (req, res) => {
       if (err2) throw err2;
       db.query("DELETE FROM users WHERE id=?", [user_id], err3 => {
         if (err3) throw err3;
+        if (req.session.user.role === "academic_coordinator") return res.redirect("/coordinator/manage-users");
         res.redirect("/admin/manage-users");
       });
     });
   });
 });
 
-app.get("/admin/manage-courses", (req, res) => {
-  if (!req.session.user || req.session.user.role !== "admin") return res.redirect("/");
+app.get("/admin/manage-courses", requireRole("admin"), (req, res) => {
   db.query("SELECT * FROM courses", (err, courses) => {
     if (err) throw err;
     db.query("SELECT * FROM users WHERE role='teacher'", (err, teachers) => {
@@ -227,33 +250,33 @@ app.get("/admin/manage-courses", (req, res) => {
       db.query(`SELECT teacher_courses.course_id, teacher_courses.teacher_id, teacher_courses.status, users.username FROM teacher_courses JOIN users ON teacher_courses.teacher_id = users.id`, (err, assignments) => {
         if (err) throw err;
 
-        let pendingApprovals = assignments.filter(a => a.status === 'pending').map(a => {
-          let course = courses.find(c => c.id === a.course_id);
-          return {
-            teacher_id: a.teacher_id,
-            course_id: a.course_id,
-            username: a.username,
-            course_name: course ? course.course_name : "Unknown"
-          };
+        courses.forEach(c => {
+          let assigned = assignments.filter(a => a.course_id === c.id && a.status === 'approved').map(a => a.username);
+          c.teachers = assigned.length ? assigned.join(", ") : "None";
         });
+
+        res.render("manage_courses", { user: req.session.user, courses, teachers, pendingApprovals: [] });
+      });
+    });
+  });
+});
+
+app.get("/coordinator/manage-courses", requireRole("academic_coordinator"), (req, res) => {
+  db.query("SELECT * FROM courses", (err, courses) => {
+    if (err) throw err;
+    db.query("SELECT * FROM users WHERE role='teacher'", (err, teachers) => {
+      if (err) throw err;
+      db.query(`SELECT teacher_courses.course_id, teacher_courses.teacher_id, teacher_courses.status, users.username FROM teacher_courses JOIN users ON teacher_courses.teacher_id = users.id`, (err, assignments) => {
+        if (err) throw err;
 
         courses.forEach(c => {
           let assigned = assignments.filter(a => a.course_id === c.id && a.status === 'approved').map(a => a.username);
           c.teachers = assigned.length ? assigned.join(", ") : "None";
         });
 
-        res.render("manage_courses", { user: req.session.user, courses, teachers, pendingApprovals });
+        res.render("manage_courses", { user: req.session.user, courses, teachers, pendingApprovals: [] });
       });
     });
-  });
-});
-
-app.post("/admin/approve-teacher", (req, res) => {
-  if (!req.session.user || req.session.user.role !== "admin") return res.redirect("/");
-  const { course_id, teacher_id } = req.body;
-  db.query("UPDATE teacher_courses SET status='approved' WHERE course_id=? AND teacher_id=?", [course_id, teacher_id], err => {
-    if (err) throw err;
-    res.redirect("/admin/manage-courses");
   });
 });
 
@@ -267,13 +290,14 @@ app.get("/course/:id/manage", (req, res) => {
 
     db.query("SELECT * FROM course_levels WHERE course_id=? ORDER BY level_number ASC", [courseId], (err, levels) => {
       if (err) throw err;
-      res.render("course_management", { user: req.session.user, course: courseRows[0], levels });
+      const canEdit = ["teacher"].includes(req.session.user.role);
+      res.render("course_management", { user: req.session.user, course: courseRows[0], levels, canEdit });
     });
   });
 });
 
 app.post("/course/add-new-level", (req, res) => {
-  if (!req.session.user || !["admin", "teacher"].includes(req.session.user.role)) return res.redirect("/");
+  if (!req.session.user || !["teacher"].includes(req.session.user.role)) return res.redirect("/");
   const { course_id } = req.body;
 
   db.query("SELECT MAX(level_number) as maxLevel FROM course_levels WHERE course_id=?", [course_id], (err, result) => {
@@ -290,7 +314,7 @@ app.post("/course/add-new-level", (req, res) => {
 });
 
 app.post("/course/remove-specific-level", (req, res) => {
-  if (!req.session.user || !["admin", "teacher"].includes(req.session.user.role)) return res.redirect("/");
+  if (!req.session.user || !["teacher"].includes(req.session.user.role)) return res.redirect("/");
   const { course_id, level_id } = req.body;
 
   db.query("DELETE FROM questions WHERE course_id=? AND level=(SELECT level_number FROM course_levels WHERE id=?)", [course_id, level_id], err1 => {
@@ -306,7 +330,7 @@ app.post("/course/remove-specific-level", (req, res) => {
 });
 
 app.post("/course/rename-level", (req, res) => {
-  if (!req.session.user || !["admin", "teacher"].includes(req.session.user.role)) return res.redirect("/");
+  if (!req.session.user || !["teacher"].includes(req.session.user.role)) return res.redirect("/");
   const { level_id, level_name } = req.body;
   db.query("UPDATE course_levels SET level_name=? WHERE id=?", [level_name, level_id], err => {
     db.query("SELECT * FROM course_levels WHERE id=?", [level_id], (err2, rows) => {
@@ -322,18 +346,17 @@ app.post("/admin/assign-teacher", (req, res) => {
 });
 */
 
-app.post("/admin/add-course", (req, res) => {
-  if (!req.session.user || req.session.user.role !== "admin") return res.redirect("/");
+app.post("/coordinator/add-course", requireRole("academic_coordinator"), (req, res) => {
   let { course_name, levels } = req.body;
   if (!levels || levels < 1) levels = 1;
   db.query("INSERT INTO courses (course_name, levels) VALUES (?, ?)", [course_name, levels], err => {
     if (err) throw err;
-    res.redirect("/admin/manage-courses");
+    res.redirect("/coordinator/manage-courses");
   });
 });
 
 app.post("/admin/delete-course", (req, res) => {
-  if (!req.session.user || req.session.user.role !== "admin") return res.redirect("/");
+  if (!req.session.user || !["admin"].includes(req.session.user.role)) return res.redirect("/");
   const { course_id } = req.body;
 
   // Delete associated teacher assignments
@@ -380,13 +403,23 @@ app.get("/view-results", (req, res) => {
       query += " WHERE courses.id = ? ORDER BY results.id DESC";
       db.query(query, [selectedCourse], (err, resultsData) => {
         if (err) throw err;
-        res.render("admin_results", { user: req.session.user, results: resultsData });
+        const groupedResults = resultsData.reduce((acc, row) => {
+          acc[row.course_name] = acc[row.course_name] || [];
+          acc[row.course_name].push(row);
+          return acc;
+        }, {});
+        res.render("admin_results", { user: req.session.user, results: resultsData, groupedResults });
       });
     } else {
       query += " ORDER BY results.id DESC";
       db.query(query, (err, resultsData) => {
         if (err) throw err;
-        res.render("admin_results", { user: req.session.user, results: resultsData });
+        const groupedResults = resultsData.reduce((acc, row) => {
+          acc[row.course_name] = acc[row.course_name] || [];
+          acc[row.course_name].push(row);
+          return acc;
+        }, {});
+        res.render("admin_results", { user: req.session.user, results: resultsData, groupedResults });
       });
     }
   } else {
@@ -401,7 +434,7 @@ app.get("/view-results", (req, res) => {
     query += " ORDER BY results.id DESC";
     db.query(query, params, (err, resultsData) => {
       if (err) throw err;
-      res.render("admin_results", { user: req.session.user, results: resultsData });
+      res.render("admin_results", { user: req.session.user, results: resultsData, groupedResults: null });
     });
   }
 });
@@ -455,7 +488,7 @@ app.get("/teacher-dashboard", (req, res) => {
 // Add Question (Teacher/Admin)
 // ----------------------
 app.get("/add-question", (req, res) => {
-  if (!req.session.user || !["admin", "teacher"].includes(req.session.user.role)) return res.redirect("/");
+  if (!req.session.user || !["teacher"].includes(req.session.user.role)) return res.redirect("/");
 
   const preCourseId = req.query.course_id || 0;
   const preLevelNum = req.query.level || 0;
@@ -474,6 +507,7 @@ app.get("/add-question", (req, res) => {
 });
 
 app.post("/add-question", (req, res) => {
+  if (!req.session.user || !["teacher"].includes(req.session.user.role)) return res.redirect("/");
   const { course_id, level, question, option1, option2, option3, option4, correct } = req.body;
 
   db.query(
@@ -540,7 +574,27 @@ app.get("/student-dashboard", (req, res) => {
   if (!req.session.user || req.session.user.role !== "student") return res.redirect("/");
   db.query("SELECT * FROM courses ORDER BY id ASC", (err, courses) => {
     if (err) throw err;
-    res.render("student_dashboard", { user: req.session.user, courses });
+    db.query(
+      "SELECT course_id, COUNT(DISTINCT CASE WHEN score >= 60 THEN level END) AS cleared_levels FROM results WHERE user_id=? GROUP BY course_id",
+      [req.session.user.id],
+      (err2, rows) => {
+        if (err2) throw err2;
+        const clearedByCourse = rows.reduce((acc, r) => {
+          acc[r.course_id] = r.cleared_levels || 0;
+          return acc;
+        }, {});
+
+        const progressByCourse = courses.reduce((acc, c) => {
+          const cleared = clearedByCourse[c.id] || 0;
+          const total = c.levels || 0;
+          const pct = total > 0 ? Math.round((cleared / total) * 100) : 0;
+          acc[c.id] = Math.max(0, Math.min(100, pct));
+          return acc;
+        }, {});
+
+        res.render("student_dashboard", { user: req.session.user, courses, progressByCourse });
+      }
+    );
   });
 });
 

@@ -21,36 +21,63 @@
 
         <div class="container">
             <h1 class="page-title">Student Results</h1>
-            <p class="page-subtitle">Course-wise and level-wise performance overview.</p>
+            <p class="page-subtitle">Course-wise performance overview.</p>
 
-            <% if (results && results.length> 0) { %>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Student Username</th>
-                            <th>Course</th>
-                            <th>Level</th>
-                            <th>Score</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <% results.forEach(result=> { %>
-                            <tr>
-                                <td><%= result.username %></td>
-                                <td><%= result.course_name %></td>
-                                <td><%= result.level %></td>
-                                <td><%= result.score %></td>
-                            </tr>
-                        <% }) %>
-                    </tbody>
-                </table>
+            <% if (groupedResults) { %>
+                <% const courseNames = Object.keys(groupedResults); %>
+                <% if (courseNames.length === 0) { %>
+                    <div style="opacity: 0.8;">No results found.</div>
+                <% } else { %>
+                    <% courseNames.forEach(courseName => { %>
+                        <div class="card" style="margin-top: 16px;">
+                            <h3 class="card-title"><%= courseName %></h3>
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Student Username</th>
+                                        <th>Level</th>
+                                        <th>Score</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% groupedResults[courseName].forEach(result => { %>
+                                        <tr>
+                                            <td><%= result.username %></td>
+                                            <td><%= result.level %></td>
+                                            <td><%= result.score %></td>
+                                        </tr>
+                                    <% }) %>
+                                </tbody>
+                            </table>
+                        </div>
+                    <% }) %>
+                <% } %>
             <% } else { %>
-                <div style="opacity: 0.8;">No results found.</div>
+                <% if (results && results.length> 0) { %>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Student Username</th>
+                                <th>Course</th>
+                                <th>Level</th>
+                                <th>Score</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% results.forEach(result=> { %>
+                                <tr>
+                                    <td><%= result.username %></td>
+                                    <td><%= result.course_name %></td>
+                                    <td><%= result.level %></td>
+                                    <td><%= result.score %></td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                <% } else { %>
+                    <div style="opacity: 0.8;">No results found.</div>
+                <% } %>
             <% } %>
-
-            <div style="margin-top: 16px;">
-                <a href="<%= user.role === 'admin' ? '/admin' : '/teacher-dashboard' %>" class="btn btn-secondary">Back to Dashboard</a>
-            </div>
         </div>
     </div>
 </body>

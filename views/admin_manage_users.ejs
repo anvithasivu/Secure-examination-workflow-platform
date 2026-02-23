@@ -11,9 +11,9 @@
     <div class="app-shell">
         <div class="topbar">
             <div class="topbar-inner">
-                <a class="brand" href="/admin">Secure Exam</a>
+                <a class="brand" href="<%= user.role === 'academic_coordinator' ? '/coordinator' : '/admin' %>">Secure Exam</a>
                 <div class="nav-group">
-                    <a class="btn btn-ghost" href="/admin">Dashboard</a>
+                    <a class="btn btn-ghost" href="<%= user.role === 'academic_coordinator' ? '/coordinator' : '/admin' %>">Dashboard</a>
                     <a class="btn btn-danger" href="/logout">Logout</a>
                 </div>
             </div>
@@ -21,67 +21,49 @@
 
         <div class="container">
             <h1 class="page-title">User Management</h1>
-            <p class="page-subtitle">Create teacher accounts and manage student/teacher access.</p>
+            <p class="page-subtitle">
+                <%= user.role === 'academic_coordinator'
+                    ? 'Create teacher accounts and manage student/teacher access.'
+                    : 'Oversight view — monitor users and remove accounts if required.' %>
+            </p>
+
+            <div class="card" style="margin-bottom: 16px;">
+                <div class="card-actions">
+                    <button type="button" class="btn" onclick="showTab('students')">Students</button>
+                    <button type="button" class="btn btn-secondary" onclick="showTab('teachers')">Teachers</button>
+                </div>
+            </div>
 
             <div class="grid">
-                <div class="col-12">
-                    <div class="card">
-                        <h3 class="card-title">Add New Teacher</h3>
-                        <form action="/admin/add-teacher" method="POST" class="row">
-                            <input class="field" type="text" name="username" placeholder="Teacher Username" required>
-                            <select class="field" name="course_id" required>
-                                <option value="" disabled selected>Assign to Course</option>
-                                <% courses.forEach(course=> { %>
-                                    <option value="<%= course.id %>"><%= course.course_name %></option>
-                                <% }) %>
-                            </select>
-                            <button type="submit" class="btn">Create Teacher Account</button>
-                        </form>
+                <% if (user.role === 'academic_coordinator') { %>
+                    <div class="col-12">
+                        <div class="card">
+                            <h3 class="card-title">Add New Teacher</h3>
 
-                        <div class="alert alert-info">
-                            <strong>Default Password:</strong> All new teachers are assigned <code>teacherlogin</code>
-                            as their initial password and will be prompted to change it upon login.
+                            <form action="/coordinator/add-teacher" method="POST" class="row">
+                                <input class="field" type="text" name="username" placeholder="Teacher Username" required>
+                                <select class="field" name="course_id" required>
+                                    <option value="" disabled selected>Assign to Course</option>
+                                    <% courses.forEach(course=> { %>
+                                        <option value="<%= course.id %>"><%= course.course_name %></option>
+                                    <% }) %>
+                                </select>
+                                <button type="submit" class="btn">Create Teacher Account</button>
+                            </form>
+
+                            <div class="alert alert-info">
+                                <strong>Default Password:</strong> All new teachers are assigned <code>teacherlogin</code>
+                                as their initial password and will be prompted to change it upon login.
+                            </div>
                         </div>
                     </div>
-                </div>
+                <% } %>
 
-                <div class="col-12">
-                    <div class="card">
-                        <h3 class="card-title">Pending Teachers (Awaiting Password Setup)</h3>
-                        <% if (pendingTeachers && pendingTeachers.length> 0) { %>
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>Username</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <% pendingTeachers.forEach(teacher=> { %>
-                                        <tr>
-                                            <td>
-                                                <%= teacher.username %>
-                                            </td>
-                                            <td>
-                                                <form action="/admin/delete-user" method="POST" onsubmit="return confirm('Delete this account?');">
-                                                    <input type="hidden" name="user_id" value="<%= teacher.id %>">
-                                                    <button type="submit" class="btn btn-danger">Remove</button>
-                                                </form>
-                                            </td>
-                                        </tr>
-                                    <% }) %>
-                                </tbody>
-                            </table>
-                        <% } else { %>
-                            <div class="alert alert-empty">No pending teachers awaiting password change.</div>
-                        <% } %>
-                    </div>
-                </div>
-
-                <div class="col-12">
+                <div class="col-12" id="tab_students">
                     <div class="card">
                         <h3 class="card-title">Registered Students</h3>
                         <% if (students && students.length> 0) { %>
+
                             <table class="table">
                                 <thead>
                                     <tr>
@@ -111,14 +93,15 @@
                     </div>
                 </div>
 
-                <div class="col-12">
+                <div class="col-12" id="tab_teachers" style="display:none;">
                     <div class="card">
-                        <h3 class="card-title">Approved Teachers</h3>
-                        <% if (activeTeachers && activeTeachers.length> 0) { %>
+                        <h3 class="card-title">Teachers</h3>
+                        <% if ((activeTeachers && activeTeachers.length> 0) || (pendingTeachers && pendingTeachers.length> 0)) { %>
                             <table class="table">
                                 <thead>
                                     <tr>
                                         <th>Username</th>
+                                        <th>Status</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
@@ -128,6 +111,22 @@
                                             <td>
                                                 <%= teacher.username %>
                                             </td>
+                                            <td>Active</td>
+                                            <td>
+                                                <form action="/admin/delete-user" method="POST" onsubmit="return confirm('Are you sure you want to remove this teacher?');">
+                                                    <input type="hidden" name="user_id" value="<%= teacher.id %>">
+                                                    <button type="submit" class="btn btn-danger">Remove</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    <% }) %>
+
+                                    <% pendingTeachers.forEach(teacher=> { %>
+                                        <tr>
+                                            <td>
+                                                <%= teacher.username %>
+                                            </td>
+                                            <td>Pending Setup</td>
                                             <td>
                                                 <form action="/admin/delete-user" method="POST" onsubmit="return confirm('Are you sure you want to remove this teacher?');">
                                                     <input type="hidden" name="user_id" value="<%= teacher.id %>">
@@ -145,9 +144,20 @@
                 </div>
             </div>
 
-            <div class="text-center">
-                <a href="/admin" class="btn btn-secondary">Back to Dashboard</a>
-            </div>
+            <script>
+                function showTab(tab) {
+                    const students = document.getElementById('tab_students');
+                    const teachers = document.getElementById('tab_teachers');
+                    if (!students || !teachers) return;
+                    if (tab === 'teachers') {
+                        students.style.display = 'none';
+                        teachers.style.display = '';
+                    } else {
+                        teachers.style.display = 'none';
+                        students.style.display = '';
+                    }
+                }
+            </script>
         </div>
     </div>
 

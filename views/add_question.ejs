@@ -27,21 +27,28 @@
           <div class="row">
             <div>
               <label><strong>Course</strong></label>
-              <select class="field" name="course_id" required>
+              <% const lockSelection = String(preCourseId) !== '0' && String(preLevelNum) !== '0'; %>
+              <select class="field" name="course_id" required <%= lockSelection ? 'disabled' : '' %>>
                 <% courses.forEach(c=> { %>
                   <option value="<%= c.id %>" <%=preCourseId==c.id ? 'selected' : '' %>><%= c.course_name %></option>
                 <% }) %>
               </select>
+              <% if (lockSelection) { %>
+                <input type="hidden" name="course_id" value="<%= preCourseId %>">
+              <% } %>
             </div>
 
             <div>
               <label><strong>Level</strong></label>
-              <select class="field" name="level" required>
+              <select class="field" name="level" required <%= lockSelection ? 'disabled' : '' %>>
                 <% let maxL=10; if(preCourseId !=0) { const c=courses.find(cr=> cr.id == preCourseId); if(c) maxL = c.levels; } %>
                 <% for(let i=1; i<=maxL; i++) { %>
                   <option value="<%= i %>" <%=preLevelNum==i ? 'selected' : '' %>>Level <%= i %></option>
                 <% } %>
               </select>
+              <% if (lockSelection) { %>
+                <input type="hidden" name="level" value="<%= preLevelNum %>">
+              <% } %>
             </div>
           </div>
 
@@ -62,10 +69,6 @@
 
           <button type="submit" class="btn">Add Question</button>
         </form>
-      </div>
-
-      <div style="margin-top: 16px;">
-        <a href="<%= user.role === 'admin' ? '/admin' : '/teacher-dashboard' %>" class="btn btn-secondary">Back to Dashboard</a>
       </div>
     </div>
   </div>
