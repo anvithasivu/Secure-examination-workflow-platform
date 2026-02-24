@@ -23,11 +23,25 @@
             <h1 class="page-title">Exam Result</h1>
             <p class="page-subtitle"><%= result.course_name %></p>
 
+            <% const totalQ = Number((typeof total !== 'undefined' ? total : 0) || 0); %>
+            <% const maxMarks = Number((typeof max !== 'undefined' ? max : (totalQ || 0)) || 0); %>
+            <% const marksSecured = Number((typeof marks !== 'undefined' ? marks : 0) || 0); %>
+            <% const pctFromQuery = Number((typeof percentage !== 'undefined' ? percentage : 0) || 0); %>
+            <% const pctComputed = maxMarks > 0 ? Number(((marksSecured / maxMarks) * 100).toFixed(2)) : 0; %>
+            <% const overallPct = (pctFromQuery || pctFromQuery === 0) ? Number(pctFromQuery) : pctComputed; %>
+
             <div class="grid">
                 <div class="col-12">
                     <div class="card">
-                        <h3 class="card-title">Score</h3>
-                        <div style="font-size: 40px; font-weight: 900;"><%= result.score %>%</div>
+                        <h3 class="card-title">Overall Percentage</h3>
+                        <div style="font-size: 40px; font-weight: 900;"><%= (typeof overallPct === 'number' && !Number.isNaN(overallPct)) ? overallPct.toFixed(2) : '0.00' %>%</div>
+                        <div style="opacity: 0.75; margin-top: 8px; font-weight: 800;">
+                            Total Marks Secured: <%= (typeof marksSecured === 'number' && !Number.isNaN(marksSecured)) ? marksSecured.toFixed(2) : '0.00' %>
+                        </div>
+
+                        <div style="margin-top: 10px; opacity: 0.85; font-weight: 800;">
+                            Minimum 60% is required to pass this level.
+                        </div>
                     </div>
                 </div>
 

@@ -5,70 +5,329 @@
   <title>Exam - Level <%= level %> (Course: <%= course.course_name %>)</title>
   <link rel="stylesheet" href="/style.css">
   <script>
-    let timeLeft = 600; // 10 minutes in seconds
-    function updateTimer() {
-      const minutes = Math.floor(timeLeft / 60);
-      const seconds = timeLeft % 60;
-      document.getElementById('timer').innerText = `Time Left: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-      if (timeLeft <= 0) {
-        document.getElementById('examForm').submit();
-      } else {
-        timeLeft--;
-        setTimeout(updateTimer, 1000);
+    const EXAM_DURATION_SECONDS = 60 * 60;
+    const MAX_TAB_VIOLATIONS = 3;
+
+    let timeLeft = EXAM_DURATION_SECONDS;
+    let currentIndex = 0;
+    let violations = 0;
+
+    function two(n) { return n < 10 ? '0' + n : '' + n; }
+    function fmtTime(s) {
+      const m = Math.floor(s / 60);
+      const sec = s % 60;
+      return `${m}:${two(sec)}`;
+    }
+
+    function getQuestions() {
+      return Array.from(document.querySelectorAll('[data-question-index]'));
+    }
+
+    function isAnswered(i) {
+      const q = document.querySelector(`[data-question-index="${i}"]`);
+      if (!q) return false;
+      return !!q.querySelector('input[type="radio"]:checked');
+    }
+
+    function setActiveQuestion(i) {
+      const qs = getQuestions();
+      if (!qs.length) return;
+      const next = Math.max(0, Math.min(qs.length - 1, i));
+      currentIndex = next;
+      qs.forEach((el, idx) => { el.style.display = (idx === next) ? 'block' : 'none'; });
+      document.getElementById('qCounter').innerText = `Question ${next + 1} / ${qs.length}`;
+      updateNav();
+      updatePrevNext();
+    }
+
+    function updatePrevNext() {
+      const qs = getQuestions();
+      const prev = document.getElementById('prevBtn');
+      const next = document.getElementById('nextBtn');
+      if (prev) prev.disabled = currentIndex <= 0;
+      if (next) next.disabled = currentIndex >= (qs.length - 1);
+    }
+
+    function updateNav() {
+      const nav = Array.from(document.querySelectorAll('[data-nav-index]'));
+      nav.forEach(btn => {
+        const idx = Number(btn.getAttribute('data-nav-index'));
+        btn.classList.remove('is-active', 'is-answered', 'is-unanswered');
+        if (idx === currentIndex) btn.classList.add('is-active');
+        if (isAnswered(idx)) btn.classList.add('is-answered');
+        else btn.classList.add('is-unanswered');
+      });
+    }
+
+    function startTimer() {
+      const el = document.getElementById('timer');
+      function tick() {
+        if (el) el.innerText = `Time Left: ${fmtTime(Math.max(0, timeLeft))}`;
+        if (timeLeft <= 0) {
+          forceSubmit('Time is up. Submitting your exam.');
+          return;
+        }
+        timeLeft -= 1;
+        setTimeout(tick, 1000);
+      }
+      tick();
+    }
+
+    function countAnswered() {
+      const qs = getQuestions();
+      let answered = 0;
+      qs.forEach((_, i) => { if (isAnswered(i)) answered += 1; });
+      return { total: qs.length, answered, unanswered: Math.max(0, qs.length - answered) };
+    }
+
+    function forceSubmit(reason) {
+      const banner = document.getElementById('autoSubmitBanner');
+      if (banner) {
+        banner.innerText = reason;
+        banner.style.display = 'block';
+      }
+      const form = document.getElementById('examForm');
+      if (form) form.submit();
+    }
+
+    function showViolation(msg) {
+      violations += 1;
+      const warn = document.getElementById('violationBanner');
+      if (warn) {
+        warn.style.display = 'block';
+        warn.innerText = `${msg} Warning ${violations}/${MAX_TAB_VIOLATIONS}`;
+      }
+      if (violations >= MAX_TAB_VIOLATIONS) {
+        forceSubmit('Multiple exam integrity violations detected. Submitting your exam.');
       }
     }
-    window.onload = updateTimer;
+
+    function setupSecurity() {
+      window.history.pushState(null, '', window.location.href);
+      window.addEventListener('popstate', () => {
+        window.history.pushState(null, '', window.location.href);
+        showViolation('Back navigation is disabled during the exam.');
+      });
+
+      window.addEventListener('beforeunload', (e) => {
+        e.preventDefault();
+        e.returnValue = '';
+        return '';
+      });
+
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) showViolation('Tab switching detected.');
+      });
+      window.addEventListener('blur', () => {
+        showViolation('Window focus lost.');
+      });
+
+      document.addEventListener('fullscreenchange', () => {
+        const fsEl = document.fullscreenElement;
+        const btn = document.getElementById('fsBtn');
+        const gate = document.getElementById('fsGate');
+        const root = document.documentElement;
+        if (btn) btn.innerText = fsEl ? 'Full Screen Enabled' : 'Enable Full Screen';
+        if (gate) gate.style.display = fsEl ? 'none' : 'flex';
+        if (root) {
+          if (fsEl) root.classList.remove('exam-locked');
+          else root.classList.add('exam-locked');
+        }
+        if (!fsEl) {
+          showViolation('Full screen exited.');
+        }
+      });
+
+      document.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        showViolation('Right-click is disabled.');
+      });
+
+      document.addEventListener('keydown', (e) => {
+        const key = (e.key || '').toLowerCase();
+        const ctrl = e.ctrlKey || e.metaKey;
+        const blocked =
+          (ctrl && ['c', 'v', 'x', 'u', 's', 'p', 'r'].includes(key)) ||
+          key === 'f5' ||
+          (e.altKey && (key === 'arrowleft' || key === 'arrowright'));
+        if (blocked) {
+          e.preventDefault();
+          showViolation('Keyboard shortcut blocked.');
+        }
+      });
+    }
+
+    function bindEvents() {
+      document.querySelectorAll('input[type="radio"]').forEach(r => {
+        r.addEventListener('change', () => {
+          updateNav();
+        });
+      });
+
+      document.querySelectorAll('[data-nav-index]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = Number(btn.getAttribute('data-nav-index'));
+          setActiveQuestion(idx);
+        });
+      });
+
+      const prev = document.getElementById('prevBtn');
+      const next = document.getElementById('nextBtn');
+      if (prev) prev.addEventListener('click', () => setActiveQuestion(currentIndex - 1));
+      if (next) next.addEventListener('click', () => setActiveQuestion(currentIndex + 1));
+
+      const fsBtn = document.getElementById('fsBtn');
+      if (fsBtn) fsBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        try {
+          if (!document.fullscreenElement) {
+            await document.documentElement.requestFullscreen();
+          }
+        } catch (err) {
+          showViolation('Full screen could not be enabled.');
+        }
+      });
+
+      const submitBtn = document.getElementById('submitBtn');
+      if (submitBtn) submitBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        forceSubmit('Submitting your exam.');
+      });
+    }
+
+    window.addEventListener('load', () => {
+      setupSecurity();
+      bindEvents();
+      setActiveQuestion(0);
+      startTimer();
+
+      const gate = document.getElementById('fsGate');
+      if (gate) gate.style.display = 'flex';
+      document.documentElement.classList.add('exam-locked');
+    });
   </script>
+  <style>
+    .exam-shell { display:flex; gap: 14px; align-items: stretch; margin-top: 14px; }
+    .exam-left { width: 280px; flex: 0 0 280px; }
+    .exam-right { flex: 1; min-width: 0; }
+    .qnav-grid { display:grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+    .qnav-btn { border: 1px solid rgba(15, 23, 42, 0.12); background: var(--surface); padding: 10px 0; border-radius: 10px; font-weight: 900; cursor: pointer; }
+    .qnav-btn.is-active { outline: 2px solid rgba(59, 130, 246, 0.35); border-color: rgba(59, 130, 246, 0.45); }
+    .qnav-btn.is-answered { background: rgba(34, 197, 94, 0.12); border-color: rgba(34, 197, 94, 0.35); }
+    .qnav-btn.is-unanswered { background: rgba(148, 163, 184, 0.10); }
+    .exam-header { display:flex; align-items:flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .banner { display:none; padding: 10px 12px; border-radius: 12px; font-weight: 800; }
+    .banner.warn { background: rgba(245, 158, 11, 0.14); border: 1px solid rgba(245, 158, 11, 0.25); }
+    .banner.danger { background: rgba(239, 68, 68, 0.10); border: 1px solid rgba(239, 68, 68, 0.22); }
+    .option { display:flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid rgba(15, 23, 42, 0.10); border-radius: 12px; }
+    .option input { margin-top: 3px; }
+    .option:hover { border-color: rgba(59, 130, 246, 0.30); background: rgba(59, 130, 246, 0.03); }
+    .fs-gate { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55); display:none; align-items:center; justify-content:center; padding: 18px; z-index: 60; }
+    .fs-gate .card { max-width: 560px; width: 100%; }
+    .exam-locked body { overflow: hidden; }
+    .exam-locked .app-shell { pointer-events: none; user-select: none; }
+    .exam-locked #fsGate { pointer-events: auto; }
+  </style>
 </head>
 
 <body>
+  <div id="fsGate" class="fs-gate">
+    <div class="card">
+      <div style="font-weight: 900; font-size: 16px;">Full Screen Required</div>
+      <div style="opacity: 0.75; margin-top: 6px;">To start answering questions, enable full screen mode.</div>
+
+      <div style="margin-top: 14px; display:flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap;">
+        <button type="button" class="btn" onclick="document.getElementById('fsBtn').click()">Enter Full Screen</button>
+      </div>
+      <div style="opacity: 0.75; margin-top: 10px; font-size: 13px;">Exiting full screen will trigger a warning.</div>
+    </div>
+  </div>
   <div class="app-shell">
     <div class="topbar">
       <div class="topbar-inner">
         <a class="brand" href="/student-dashboard">Secure Exam</a>
-        <div class="nav-group">
-          <a class="btn btn-ghost" href="/student-levels/<%= course.id %>">Levels</a>
-          <a class="btn btn-danger" href="/logout">Logout</a>
-        </div>
+        <div class="nav-group"></div>
       </div>
     </div>
 
     <div class="container">
-      <div style="display:flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap;">
+      <div class="exam-header">
         <div>
           <h1 class="page-title"><%= course.course_name %> - <%= "Level " + level %></h1>
-          <p class="page-subtitle">Timed MCQ assessment. Negative marking applies.</p>
+          <p class="page-subtitle">Secure online examination. Do not refresh or switch tabs.</p>
         </div>
-        <div class="card" style="padding: 12px 14px;">
-          <div id="timer" style="font-weight: 800;">Time Left: 10:00</div>
+        <div style="display:flex; gap: 10px; align-items: stretch; flex-wrap: wrap; justify-content: flex-end;">
+          <button id="fsBtn" type="button" class="btn btn-secondary" style="padding: 10px 14px;">Enable Full Screen</button>
+          <div class="card" style="padding: 12px 14px;">
+            <div id="timer" style="font-weight: 900;">Time Left: 60:00</div>
+          </div>
         </div>
       </div>
+
+      <div id="violationBanner" class="banner warn" style="margin-top: 12px;"></div>
+      <div id="autoSubmitBanner" class="banner danger" style="margin-top: 10px;"></div>
 
       <form id="examForm" action="/submit-exam" method="POST">
         <input type="hidden" name="course_id" value="<%= course.id %>">
         <input type="hidden" name="level" value="<%= level %>">
 
-        <div class="stack">
-          <% mcqQuestions.forEach((q, index)=> { %>
-            <div class="card">
-              <h3 class="card-title">Q<%= index+1 %></h3>
-              <div style="margin-bottom: 10px;"><%= q.question %></div>
-              <div class="stack" style="gap: 8px;">
-                <label><input type="radio" name="mcq_<%= q.id %>" value="1"> <%= q.option1 %></label>
-                <label><input type="radio" name="mcq_<%= q.id %>" value="2"> <%= q.option2 %></label>
-                <label><input type="radio" name="mcq_<%= q.id %>" value="3"> <%= q.option3 %></label>
-                <label><input type="radio" name="mcq_<%= q.id %>" value="4"> <%= q.option4 %></label>
+        <div class="exam-shell">
+          <div class="exam-left">
+            <div class="card" style="position: sticky; top: 86px; padding: 16px;">
+              <div style="display:flex; align-items:center; justify-content: space-between; gap: 10px;">
+                <div style="font-weight: 900;">Question Navigator</div>
+                <div id="qCounter" style="opacity: 0.75; font-weight: 800;">Question 1 / <%= (mcqQuestions || []).length %></div>
+              </div>
+
+              <div class="qnav-grid" style="margin-top: 12px;">
+                <% (mcqQuestions || []).slice(0, 40).forEach((q, index)=> { %>
+                  <button type="button" class="qnav-btn" data-nav-index="<%= index %>"><%= index + 1 %></button>
+                <% }) %>
+              </div>
+
+              <div style="margin-top: 14px; display:grid; grid-template-columns: 1fr; gap: 8px;">
+                <button id="submitBtn" type="submit" class="btn" style="width: 100%; justify-content: center;">Submit Test</button>
+              </div>
+
+              <div style="margin-top: 12px; opacity: 0.75; font-size: 13px;">
+                <div><span style="display:inline-block; width: 10px; height: 10px; border-radius: 999px; background: rgba(34, 197, 94, 0.6); margin-right: 8px;"></span>Answered</div>
+                <div style="margin-top: 6px;"><span style="display:inline-block; width: 10px; height: 10px; border-radius: 999px; background: rgba(148, 163, 184, 0.7); margin-right: 8px;"></span>Not Attempted</div>
               </div>
             </div>
-          <% }) %>
-        </div>
+          </div>
 
-        <div style="margin-top: 16px;" class="row">
-          <a href="/student-levels/<%= course.id %>" class="btn btn-secondary">Back to Levels</a>
-          <button type="submit" class="btn">Submit Exam</button>
+          <div class="exam-right">
+            <% (mcqQuestions || []).slice(0, 40).forEach((q, index)=> { %>
+              <div class="card" data-question-index="<%= index %>" style="display:none;">
+                <div style="display:flex; align-items:flex-start; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+                  <div>
+                    <div class="card-title" style="margin-bottom: 6px;">Question <%= index + 1 %></div>
+                    <div style="font-weight: 800;"><%= q.question %></div>
+                  </div>
+                </div>
+
+                <div class="stack" style="gap: 10px; margin-top: 14px;">
+                  <label class="option"><input type="radio" name="mcq_<%= q.id %>" value="1"> <span><%= q.option1 %></span></label>
+                  <label class="option"><input type="radio" name="mcq_<%= q.id %>" value="2"> <span><%= q.option2 %></span></label>
+                  <label class="option"><input type="radio" name="mcq_<%= q.id %>" value="3"> <span><%= q.option3 %></span></label>
+                  <label class="option"><input type="radio" name="mcq_<%= q.id %>" value="4"> <span><%= q.option4 %></span></label>
+                </div>
+
+              </div>
+            <% }) %>
+
+            <div class="card" style="margin-top: 12px; position: sticky; bottom: 14px;">
+              <div style="display:flex; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+                <button id="prevBtn" type="button" class="btn btn-secondary" style="min-width: 160px; justify-content: center;">Previous</button>
+                <button id="nextBtn" type="button" class="btn" style="min-width: 160px; justify-content: center;">Next</button>
+              </div>
+            </div>
+          </div>
         </div>
       </form>
+
     </div>
+
   </div>
 </body>
 

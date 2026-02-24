@@ -785,35 +785,42 @@ app.post("/submit-exam", (req, res) => {
     db.query("SELECT * FROM questions WHERE id IN (?)", [questionIds], (err, questions) => {
       if (err) throw err;
 
-      let marksObtained = 0;
       const totalQuestions = questions.length;
+      let correctCount = 0;
+      let wrongCount = 0;
+      const negativePerWrong = 0.25;
 
       for (let q of questions) {
         const studentAns = req.body[`mcq_${q.id}`];
         if (studentAns) {
           if (studentAns == q.correct) {
-            marksObtained += 1;
+            correctCount += 1;
           } else {
-            marksObtained -= 0.25;
+            wrongCount += 1;
           }
         }
       }
 
-      // Percentage calculation
-      const finalPercentage = totalQuestions > 0 ? (marksObtained / totalQuestions) * 100 : 0;
-      const pass_fail = (finalPercentage >= 60) ? 'Pass' : 'Fail';
+      const attemptedCount = correctCount + wrongCount;
+      const marksObtained = correctCount - (wrongCount * negativePerWrong);
+      const maxMarks = totalQuestions;
+      const marksPercentage = maxMarks > 0 ? (marksObtained / maxMarks) * 100 : 0;
+      const marksPercentageRounded = Number(marksPercentage.toFixed(2));
+
+      // Pass/Fail based on the same marks-based percentage shown on the result page
+      const pass_fail = (marksPercentageRounded >= 60) ? 'Pass' : 'Fail';
 
       db.query("SELECT * FROM results WHERE user_id=? AND course_id=? AND level=?", [user_id, course_id, level], (err, existing) => {
         if (err) throw err;
         if (existing.length > 0) {
-          db.query("UPDATE results SET score=?, attempts=attempts+1, pass_fail=? WHERE user_id=? AND course_id=? AND level=?", [Math.round(finalPercentage), pass_fail, user_id, course_id, level], err => {
+          db.query("UPDATE results SET score=?, attempts=attempts+1, pass_fail=? WHERE user_id=? AND course_id=? AND level=?", [marksPercentageRounded, pass_fail, user_id, course_id, level], err => {
             if (err) throw err;
-            res.redirect(`/exam-result/${existing[0].id}`);
+            res.redirect(`/exam-result/${existing[0].id}?total=${encodeURIComponent(totalQuestions)}&correct=${encodeURIComponent(correctCount)}&wrong=${encodeURIComponent(wrongCount)}&marks=${encodeURIComponent(marksObtained.toFixed(2))}&max=${encodeURIComponent(maxMarks)}&percentage=${encodeURIComponent(marksPercentageRounded.toFixed(2))}`);
           });
         } else {
-          db.query("INSERT INTO results (user_id, course_id, level, score, attempts, pass_fail) VALUES (?,?,?,?,?,?)", [user_id, course_id, level, Math.round(finalPercentage), 1, pass_fail], (err, result) => {
+          db.query("INSERT INTO results (user_id, course_id, level, score, attempts, pass_fail) VALUES (?,?,?,?,?,?)", [user_id, course_id, level, marksPercentageRounded, 1, pass_fail], (err, result) => {
             if (err) throw err;
-            res.redirect(`/exam-result/${result.insertId}`);
+            res.redirect(`/exam-result/${result.insertId}?total=${encodeURIComponent(totalQuestions)}&correct=${encodeURIComponent(correctCount)}&wrong=${encodeURIComponent(wrongCount)}&marks=${encodeURIComponent(marksObtained.toFixed(2))}&max=${encodeURIComponent(maxMarks)}&percentage=${encodeURIComponent(marksPercentageRounded.toFixed(2))}`);
           });
         }
       });
@@ -835,7 +842,15 @@ app.get("/exam-result/:result_id", (req, res) => {
   db.query(query, [resultId, req.session.user.id], (err, rows) => {
     if (err) throw err;
     if (rows.length === 0) return res.send("Result not found");
-    res.render("student_exam_result", { result: rows[0] });
+    res.render("student_exam_result", {
+      result: rows[0],
+      total: req.query.total || 0,
+      correct: req.query.correct || 0,
+      wrong: req.query.wrong || 0,
+      marks: req.query.marks || 0,
+      max: req.query.max || 0,
+      percentage: req.query.percentage || 0,
+    });
   });
 });
 
@@ -870,7 +885,7 @@ app.get("/exam/:course_id/:level", (req, res) => {
       if (alreadyClearedThisLevel) return res.redirect(`/student-levels/${courseId}`);
 
       db.query(
-        "SELECT * FROM questions WHERE course_id=? AND level=? AND question IS NOT NULL ORDER BY RAND() LIMIT 10",
+        "SELECT * FROM questions WHERE course_id=? AND level=? AND question IS NOT NULL ORDER BY RAND() LIMIT 40",
         [courseId, level],
         (err, mcqQuestions) => {
           if (err) throw err;
