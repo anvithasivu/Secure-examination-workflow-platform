@@ -19,25 +19,38 @@
     </div>
 
     <div class="container">
-      <h1 class="page-title">Teacher Dashboard</h1>
-      <p class="page-subtitle">Create MCQs, manage course levels, and review results.</p>
+      <div style="max-width: 1100px; margin: 0 auto;">
+        <div style="text-align:center; margin-bottom: 18px;">
+          <h1 class="page-title" style="margin-bottom: 6px;">Teacher Dashboard</h1>
+          <p class="page-subtitle" style="margin: 0;">Select a course to manage levels and review results.</p>
+        </div>
 
-      <div class="grid">
-        <div class="col-12">
-          <div class="card">
-            <h3 class="card-title">Your Courses</h3>
-            <div class="grid">
-              <% courses.forEach(c=> { %>
-                <div class="col-4">
-                  <div class="card">
-                    <h4 class="card-title"><%= c.course_name %></h4>
-                    <div class="card-actions">
-                      <a class="btn" href="/course/<%= c.id %>/manage">Manage</a>
-                      <a class="btn btn-secondary" href="/view-results?course_id=<%= c.id %>">Results</a>
+        <div class="grid">
+          <div class="col-12">
+            <div class="card" style="padding: 22px;">
+              <div style="display:flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+                <h3 class="card-title" style="margin: 0;">Your Courses</h3>
+                <div style="opacity: 0.75; font-weight: 800;">Total: <%= (courses || []).length %></div>
+              </div>
+
+              <div class="grid" style="margin-top: 16px;">
+                <% (courses || []).forEach(c=> { %>
+                  <div class="col-6">
+                    <div class="card" style="margin:0; padding: 18px 18px 16px; height: 100%; box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06); display:flex; flex-direction: column; justify-content: space-between;">
+                      <div>
+                        <div style="font-weight: 900; font-size: 18px; letter-spacing: 0.2px; margin-bottom: 10px; text-align:center;"><%= c.course_name %></div>
+                        <div style="height: 1px; background: rgba(15, 23, 42, 0.08); margin: 10px 0 14px;"></div>
+                        <div style="opacity: 0.8; text-align:center;">Use the actions below to manage and review this course.</div>
+                      </div>
+
+                      <div style="margin-top: 16px; display:flex; gap: 12px; justify-content: center;">
+                        <a class="btn" href="/course/<%= c.id %>/manage" style="min-width: 140px; text-align:center; padding: 10px 16px;">Manage</a>
+                        <a class="btn btn-secondary" href="/view-results?course_id=<%= c.id %>" style="min-width: 140px; text-align:center; padding: 10px 16px;">Results</a>
+                      </div>
                     </div>
                   </div>
-                </div>
-              <% }) %>
+                <% }) %>
+              </div>
             </div>
           </div>
         </div>
