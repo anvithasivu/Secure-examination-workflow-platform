@@ -114,12 +114,27 @@ app.post("/setup-password", (req, res) => {
     db.query("UPDATE users SET password=?, needs_password_setup=0 WHERE id=?", [hash, userId], err => {
       if (err) throw err;
       delete req.session.temp_user_id;
-      // Auto-login after setup
       db.query("SELECT * FROM users WHERE id=?", [userId], (err, rows) => {
         if (err) throw err;
-        req.session.user = rows[0];
-        // Assuming teachers are the only ones who need password setup initially
-        res.redirect("/teacher-dashboard");
+        const user = rows[0];
+        req.session.user = user;
+
+        // Redirect by role
+        if (user.role === "admin") return res.redirect("/admin");
+        if (user.role === "academic_coordinator") return res.redirect("/coordinator");
+        if (user.role === "teacher") {
+          db.query("SELECT * FROM teacher_courses WHERE teacher_id=?", [user.id], (err2, courses) => {
+            if (err2) throw err2;
+            if (courses.length > 0) {
+              const course = courses[0];
+              if (course.status === 'approved') return res.redirect("/teacher-dashboard");
+              return res.redirect("/teacher/pending");
+            }
+            return res.redirect("/teacher/choose-course");
+          });
+          return;
+        }
+        res.redirect("/student-dashboard");
       });
     });
   });
@@ -158,6 +173,32 @@ app.post("/signup", (req, res) => {
 app.get("/logout", (req, res) => {
   req.session.destroy();
   res.redirect("/");
+});
+
+// ----------------------
+// Password Recovery
+// ----------------------
+app.get("/forgot-password", (req, res) => res.render("forgot_password", { success: req.query.success, error: req.query.error }));
+
+app.post("/forgot-password", (req, res) => {
+  const { username } = req.body;
+  db.query("SELECT * FROM users WHERE username=?", [username], (err, users) => {
+    if (err) throw err;
+    if (!users.length) return res.redirect("/forgot-password?error=user_not_found");
+
+    const user = users[0];
+
+    // Check if there is already a pending request
+    db.query("SELECT * FROM password_reset_requests WHERE user_id=? AND status='pending'", [user.id], (err2, requests) => {
+      if (err2) throw err2;
+      if (requests.length > 0) return res.redirect("/forgot-password?error=already_pending");
+
+      db.query("INSERT INTO password_reset_requests (user_id, requested_by_role) VALUES (?, ?)", [user.id, user.role], err3 => {
+        if (err3) throw err3;
+        res.redirect("/forgot-password?success=1");
+      });
+    });
+  });
 });
 
 // ----------------------
@@ -288,7 +329,17 @@ app.get("/admin/manage-users", requireRole("admin"), (req, res) => {
             if (!teacherCoursesMap[r.teacher_id]) teacherCoursesMap[r.teacher_id] = [];
             teacherCoursesMap[r.teacher_id].push(r.course_name);
           });
-          res.render("admin_manage_users", { user: req.session.user, students, pendingTeachers, activeTeachers, courses, teacherCoursesMap });
+
+          db.query(
+            `SELECT pr.*, u.username
+             FROM password_reset_requests pr
+             JOIN users u ON pr.user_id = u.id
+             WHERE pr.status = 'pending' AND pr.requested_by_role = 'academic_coordinator'`,
+            (err4, pwdRequests) => {
+              if (err4) throw err4;
+              res.render("admin_manage_users", { user: req.session.user, students, pendingTeachers, activeTeachers, courses, teacherCoursesMap, pwdRequests });
+            }
+          );
         }
       );
     });
@@ -315,9 +366,38 @@ app.get("/coordinator/manage-users", requireRole("academic_coordinator"), (req, 
             if (!teacherCoursesMap[r.teacher_id]) teacherCoursesMap[r.teacher_id] = [];
             teacherCoursesMap[r.teacher_id].push(r.course_name);
           });
-          res.render("admin_manage_users", { user: req.session.user, students, pendingTeachers, activeTeachers, courses, teacherCoursesMap });
+
+          db.query(
+            `SELECT pr.*, u.username
+             FROM password_reset_requests pr
+             JOIN users u ON pr.user_id = u.id
+             WHERE pr.status = 'pending' AND pr.requested_by_role IN ('teacher', 'student')`,
+            (err4, pwdRequests) => {
+              if (err4) throw err4;
+              res.render("admin_manage_users", { user: req.session.user, students, pendingTeachers, activeTeachers, courses, teacherCoursesMap, pwdRequests });
+            }
+          );
         }
       );
+    });
+  });
+});
+
+app.post("/admin/approve-password-reset", requireAnyRole(["admin", "academic_coordinator"]), (req, res) => {
+  const { request_id, user_id } = req.body;
+
+  // Default temp password is "defaultpassword123"
+  bcrypt.hash("defaultpassword123", 10, (err, hash) => {
+    if (err) throw err;
+
+    db.query("UPDATE users SET password=?, needs_password_setup=1 WHERE id=?", [hash, user_id], err2 => {
+      if (err2) throw err2;
+
+      db.query("UPDATE password_reset_requests SET status='approved' WHERE id=?", [request_id], err3 => {
+        if (err3) throw err3;
+        if (req.session.user.role === "academic_coordinator") return res.redirect("/coordinator/manage-users?tab=requests");
+        res.redirect("/admin/manage-users?tab=requests");
+      });
     });
   });
 });
@@ -328,6 +408,11 @@ app.post("/coordinator/add-teacher", requireRole("academic_coordinator"), (req, 
   const status = 'active';
   const needs_password_setup = 1;
 
+  // course_id might be an array if multiple selected, or a single string
+  let courses_to_assign = Array.isArray(course_id) ? course_id : [course_id];
+  // Filter out any undefined or empty strings
+  courses_to_assign = courses_to_assign.filter(id => id);
+
   // Default password "teacherlogin"
   bcrypt.hash("teacherlogin", 10, (err, hash) => {
     if (err) throw err;
@@ -337,12 +422,29 @@ app.post("/coordinator/add-teacher", requireRole("academic_coordinator"), (req, 
         throw err;
       }
       const teacher_id = result.insertId;
-      // Assign to course immediately
-      db.query("INSERT INTO teacher_courses (teacher_id, course_id, status) VALUES (?, ?, 'approved')", [teacher_id, course_id], err2 => {
-        if (err2) throw err2;
+
+      if (courses_to_assign.length > 0) {
+        // Prepare values for bulk insert
+        const values = courses_to_assign.map(cid => [teacher_id, cid, 'approved']);
+        db.query("INSERT INTO teacher_courses (teacher_id, course_id, status) VALUES ?", [values], err2 => {
+          if (err2) throw err2;
+          res.redirect("/coordinator/manage-users");
+        });
+      } else {
         res.redirect("/coordinator/manage-users");
-      });
+      }
     });
+  });
+});
+
+app.post("/admin/edit-user", requireAnyRole(["admin", "academic_coordinator"]), (req, res) => {
+  const { user_id, new_username } = req.body;
+  if (!user_id || !new_username) return res.redirect("back");
+
+  db.query("UPDATE users SET username=? WHERE id=?", [new_username, user_id], err => {
+    if (err) throw err;
+    if (req.session.user.role === "academic_coordinator") return res.redirect("/coordinator/manage-users");
+    res.redirect("/admin/manage-users");
   });
 });
 
