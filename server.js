@@ -437,6 +437,24 @@ app.post("/coordinator/add-teacher", requireRole("academic_coordinator"), (req, 
   });
 });
 
+app.post("/coordinator/approve-course-request", requireAnyRole(["admin", "academic_coordinator"]), (req, res) => {
+  const { teacher_id, course_id } = req.body;
+  db.query("UPDATE teacher_courses SET status='approved' WHERE teacher_id=? AND course_id=?", [teacher_id, course_id], (err) => {
+    if (err) throw err;
+    const redirectPath = req.session.user.role === 'admin' ? '/admin/manage-courses' : '/coordinator/manage-courses';
+    res.redirect(redirectPath);
+  });
+});
+
+app.post("/coordinator/reject-course-request", requireAnyRole(["admin", "academic_coordinator"]), (req, res) => {
+  const { teacher_id, course_id } = req.body;
+  db.query("UPDATE teacher_courses SET status='rejected' WHERE teacher_id=? AND course_id=?", [teacher_id, course_id], (err) => {
+    if (err) throw err;
+    const redirectPath = req.session.user.role === 'admin' ? '/admin/manage-courses' : '/coordinator/manage-courses';
+    res.redirect(redirectPath);
+  });
+});
+
 app.post("/admin/edit-user", requireAnyRole(["admin", "academic_coordinator"]), (req, res) => {
   const { user_id, new_username } = req.body;
   if (!user_id || !new_username) return res.redirect("back");
@@ -478,7 +496,18 @@ app.get("/admin/manage-courses", requireRole("admin"), (req, res) => {
           c.teachers = assigned.length ? assigned.join(", ") : "None";
         });
 
-        res.render("manage_courses", { user: req.session.user, courses, teachers, pendingApprovals: [] });
+        // Fetch pending course requests
+        db.query(
+          `SELECT tc.teacher_id, tc.course_id, u.username, c.course_name 
+           FROM teacher_courses tc 
+           JOIN users u ON tc.teacher_id = u.id 
+           JOIN courses c ON tc.course_id = c.id 
+           WHERE tc.status = 'pending'`,
+          (errP, pendingApprovals) => {
+            if (errP) throw errP;
+            res.render("manage_courses", { user: req.session.user, courses, teachers, pendingApprovals });
+          }
+        );
       });
     });
   });
@@ -497,7 +526,18 @@ app.get("/coordinator/manage-courses", requireRole("academic_coordinator"), (req
           c.teachers = assigned.length ? assigned.join(", ") : "None";
         });
 
-        res.render("manage_courses", { user: req.session.user, courses, teachers, pendingApprovals: [] });
+        // Fetch pending course requests
+        db.query(
+          `SELECT tc.teacher_id, tc.course_id, u.username, c.course_name 
+           FROM teacher_courses tc 
+           JOIN users u ON tc.teacher_id = u.id 
+           JOIN courses c ON tc.course_id = c.id 
+           WHERE tc.status = 'pending'`,
+          (errP, pendingApprovals) => {
+            if (errP) throw errP;
+            res.render("manage_courses", { user: req.session.user, courses, teachers, pendingApprovals });
+          }
+        );
       });
     });
   });
@@ -507,30 +547,47 @@ app.get("/course/:id/manage", (req, res) => {
   if (!req.session.user || !["admin", "teacher"].includes(req.session.user.role)) return res.redirect("/");
   const courseId = req.params.id;
 
-  db.query("SELECT * FROM courses WHERE id=?", [courseId], (err, courseRows) => {
-    if (err) throw err;
-    if (courseRows.length === 0) return res.send("Course not found");
-
-    db.query("SELECT * FROM course_levels WHERE course_id=? ORDER BY level_number ASC", [courseId], (err, levels) => {
+  const renderCourse = () => {
+    db.query("SELECT * FROM courses WHERE id=?", [courseId], (err, courseRows) => {
       if (err) throw err;
-      const canEdit = ["teacher"].includes(req.session.user.role);
-      res.render("course_management", { user: req.session.user, course: courseRows[0], levels, canEdit });
+      if (courseRows.length === 0) return res.send("Course not found");
+
+      db.query("SELECT * FROM course_levels WHERE course_id=? ORDER BY level_number ASC", [courseId], (err, levels) => {
+        if (err) throw err;
+        const canEdit = ["teacher"].includes(req.session.user.role);
+        res.render("course_management", { user: req.session.user, course: courseRows[0], levels, canEdit });
+      });
     });
-  });
+  };
+
+  if (req.session.user.role === "teacher") {
+    db.query("SELECT * FROM teacher_courses WHERE teacher_id=? AND course_id=? AND status='approved'", [req.session.user.id, courseId], (err, rows) => {
+      if (err) throw err;
+      if (rows.length === 0) return res.redirect("/teacher-dashboard");
+      renderCourse();
+    });
+  } else {
+    renderCourse();
+  }
 });
 
 app.post("/course/add-new-level", (req, res) => {
   if (!req.session.user || !["teacher"].includes(req.session.user.role)) return res.redirect("/");
   const { course_id } = req.body;
 
-  db.query("SELECT MAX(level_number) as maxLevel FROM course_levels WHERE course_id=?", [course_id], (err, result) => {
+  db.query("SELECT * FROM teacher_courses WHERE teacher_id=? AND course_id=? AND status='approved'", [req.session.user.id, course_id], (err, rows) => {
     if (err) throw err;
-    const nextLevel = (result[0].maxLevel || 0) + 1;
-    db.query("INSERT INTO course_levels (course_id, level_number, level_name) VALUES (?, ?, ?)", [course_id, nextLevel, `Level ${nextLevel}`], err => {
+    if (rows.length === 0) return res.redirect("/teacher-dashboard");
+
+    db.query("SELECT MAX(level_number) as maxLevel FROM course_levels WHERE course_id=?", [course_id], (err, result) => {
       if (err) throw err;
-      db.query("UPDATE courses SET levels = levels + 1 WHERE id=?", [course_id], err2 => {
-        if (err2) throw err2;
-        res.redirect(`/course/${course_id}/manage`);
+      const nextLevel = (result[0].maxLevel || 0) + 1;
+      db.query("INSERT INTO course_levels (course_id, level_number, level_name) VALUES (?, ?, ?)", [course_id, nextLevel, `Level ${nextLevel}`], err => {
+        if (err) throw err;
+        db.query("UPDATE courses SET levels = levels + 1 WHERE id=?", [course_id], err2 => {
+          if (err2) throw err2;
+          res.redirect(`/course/${course_id}/manage`);
+        });
       });
     });
   });
@@ -540,13 +597,18 @@ app.post("/course/remove-specific-level", (req, res) => {
   if (!req.session.user || !["teacher"].includes(req.session.user.role)) return res.redirect("/");
   const { course_id, level_id } = req.body;
 
-  db.query("DELETE FROM questions WHERE course_id=? AND level=(SELECT level_number FROM course_levels WHERE id=?)", [course_id, level_id], err1 => {
-    if (err1) throw err1;
-    db.query("DELETE FROM course_levels WHERE id=?", [level_id], err => {
-      if (err) throw err;
-      db.query("UPDATE courses SET levels = GREATEST(levels - 1, 1) WHERE id=?", [course_id], err2 => {
-        if (err2) throw err2;
-        res.redirect(`/course/${course_id}/manage`);
+  db.query("SELECT * FROM teacher_courses WHERE teacher_id=? AND course_id=? AND status='approved'", [req.session.user.id, course_id], (err, rows) => {
+    if (err) throw err;
+    if (rows.length === 0) return res.redirect("/teacher-dashboard");
+
+    db.query("DELETE FROM questions WHERE course_id=? AND level=(SELECT level_number FROM course_levels WHERE id=?)", [course_id, level_id], err1 => {
+      if (err1) throw err1;
+      db.query("DELETE FROM course_levels WHERE id=?", [level_id], err => {
+        if (err) throw err;
+        db.query("UPDATE courses SET levels = GREATEST(levels - 1, 1) WHERE id=?", [course_id], err2 => {
+          if (err2) throw err2;
+          res.redirect(`/course/${course_id}/manage`);
+        });
       });
     });
   });
@@ -555,10 +617,18 @@ app.post("/course/remove-specific-level", (req, res) => {
 app.post("/course/rename-level", (req, res) => {
   if (!req.session.user || !["teacher"].includes(req.session.user.role)) return res.redirect("/");
   const { level_id, level_name } = req.body;
-  db.query("UPDATE course_levels SET level_name=? WHERE id=?", [level_name, level_id], err => {
-    db.query("SELECT * FROM course_levels WHERE id=?", [level_id], (err2, rows) => {
-      if (err2 || !rows.length) return res.redirect("/admin/manage-courses");
-      res.redirect(`/course/${rows[0].course_id}/manage`);
+
+  db.query("SELECT course_id FROM course_levels WHERE id=?", [level_id], (errL, lvlRows) => {
+    if (errL || !lvlRows.length) return res.redirect("/teacher-dashboard");
+    const course_id = lvlRows[0].course_id;
+
+    db.query("SELECT * FROM teacher_courses WHERE teacher_id=? AND course_id=? AND status='approved'", [req.session.user.id, course_id], (err, rows) => {
+      if (err) throw err;
+      if (rows.length === 0) return res.redirect("/teacher-dashboard");
+
+      db.query("UPDATE course_levels SET level_name=? WHERE id=?", [level_name, level_id], err => {
+        res.redirect(`/course/${course_id}/manage`);
+      });
     });
   });
 });
@@ -701,10 +771,36 @@ app.get("/teacher/pending", (req, res) => {
 
 app.get("/teacher-dashboard", (req, res) => {
   if (!req.session.user || req.session.user.role !== "teacher") return res.redirect("/");
-  db.query("SELECT courses.* FROM courses JOIN teacher_courses ON courses.id = teacher_courses.course_id WHERE teacher_courses.teacher_id = ?", [req.session.user.id], (err, courses) => {
+  db.query("SELECT courses.*, teacher_courses.status as request_status FROM courses JOIN teacher_courses ON courses.id = teacher_courses.course_id WHERE teacher_courses.teacher_id = ?", [req.session.user.id], (err, courses) => {
     if (err) throw err;
     res.render("teacher_dashboard", { user: req.session.user, courses });
   });
+});
+
+app.get("/teacher/request-course", requireRole("teacher"), (req, res) => {
+  const teacherId = req.session.user.id;
+  // Fetch courses not already assigned or requested by this teacher
+  db.query(
+    "SELECT * FROM courses WHERE id NOT IN (SELECT course_id FROM teacher_courses WHERE teacher_id = ?)",
+    [teacherId],
+    (err, courses) => {
+      if (err) throw err;
+      res.render("teacher_request_course", { user: req.session.user, courses });
+    }
+  );
+});
+
+app.post("/teacher/request-course", requireRole("teacher"), (req, res) => {
+  const { course_id } = req.body;
+  const teacherId = req.session.user.id;
+  db.query(
+    "INSERT INTO teacher_courses (teacher_id, course_id, status) VALUES (?, ?, 'pending')",
+    [teacherId, course_id],
+    (err) => {
+      if (err) throw err;
+      res.redirect("/teacher-dashboard");
+    }
+  );
 });
 
 // ----------------------
@@ -719,7 +815,7 @@ app.get("/add-question", (req, res) => {
   let q = "SELECT * FROM courses";
   let params = [];
   if (req.session.user.role === "teacher") {
-    q = "SELECT courses.* FROM courses JOIN teacher_courses ON courses.id = teacher_courses.course_id WHERE teacher_courses.teacher_id = ?";
+    q = "SELECT courses.* FROM courses JOIN teacher_courses ON courses.id = teacher_courses.course_id WHERE teacher_courses.teacher_id = ? AND teacher_courses.status = 'approved'";
     params.push(req.session.user.id);
   }
 
@@ -733,11 +829,16 @@ app.post("/add-question", (req, res) => {
   if (!req.session.user || !["teacher"].includes(req.session.user.role)) return res.redirect("/");
   const { course_id, level, question, option1, option2, option3, option4, correct } = req.body;
 
-  db.query(
-    "INSERT INTO questions (course_id, level, question, option1, option2, option3, option4, correct) VALUES (?,?,?,?,?,?,?,?)",
-    [course_id, level, question, option1, option2, option3, option4, correct],
-    err => { if (err) throw err; res.redirect("/add-question"); }
-  );
+  db.query("SELECT * FROM teacher_courses WHERE teacher_id=? AND course_id=? AND status='approved'", [req.session.user.id, course_id], (err, rows) => {
+    if (err) throw err;
+    if (rows.length === 0) return res.redirect("/teacher-dashboard");
+
+    db.query(
+      "INSERT INTO questions (course_id, level, question, option1, option2, option3, option4, correct) VALUES (?,?,?,?,?,?,?,?)",
+      [course_id, level, question, option1, option2, option3, option4, correct],
+      err => { if (err) throw err; res.redirect("/add-question"); }
+    );
+  });
 });
 
 // ----------------------
@@ -752,7 +853,7 @@ app.get("/view-questions", (req, res) => {
   let courseQ = "SELECT * FROM courses";
   let courseParams = [];
   if (req.session.user.role === "teacher") {
-    courseQ = "SELECT courses.* FROM courses JOIN teacher_courses ON courses.id = teacher_courses.course_id WHERE teacher_courses.teacher_id = ?";
+    courseQ = "SELECT courses.* FROM courses JOIN teacher_courses ON courses.id = teacher_courses.course_id WHERE teacher_courses.teacher_id = ? AND teacher_courses.status = 'approved'";
     courseParams.push(req.session.user.id);
   }
 
@@ -763,7 +864,7 @@ app.get("/view-questions", (req, res) => {
     const params1 = [];
 
     if (req.session.user.role === "teacher") {
-      mcqQuery += " AND course_id IN (SELECT course_id FROM teacher_courses WHERE teacher_id = ?)";
+      mcqQuery += " AND course_id IN (SELECT course_id FROM teacher_courses WHERE teacher_id = ? AND status = 'approved')";
       params1.push(req.session.user.id);
     }
 

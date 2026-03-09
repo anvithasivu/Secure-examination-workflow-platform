@@ -11,9 +11,11 @@
     <div class="app-shell">
         <div class="topbar">
             <div class="topbar-inner">
-                <a class="brand" href="<%= user.role === 'academic_coordinator' ? '/coordinator' : '/admin' %>">Secure Exam</a>
+                <a class="brand" href="<%= user.role === 'academic_coordinator' ? '/coordinator' : '/admin' %>">Secure
+                    Exam</a>
                 <div class="nav-group">
-                    <a class="btn btn-ghost" href="<%= user.role === 'academic_coordinator' ? '/coordinator' : '/admin' %>">Dashboard</a>
+                    <a class="btn btn-ghost"
+                        href="<%= user.role === 'academic_coordinator' ? '/coordinator' : '/admin' %>">Dashboard</a>
                     <a class="btn btn-danger" href="/logout">Logout</a>
                 </div>
             </div>
@@ -21,10 +23,11 @@
 
         <div class="container">
             <h1 class="page-title">Manage Courses</h1>
-            <p class="page-subtitle">View all courses, levels, and assignments. Course creation is handled by the Academic Coordinator.</p>
+            <p class="page-subtitle">View all courses, levels, and assignments. Course creation is handled by the
+                Academic Coordinator.</p>
 
             <div class="grid">
-                <% if (user.role === 'academic_coordinator') { %>
+                <% if (user.role==='academic_coordinator' ) { %>
                     <div class="col-6">
                         <div class="card">
                             <h3 class="card-title">Add New Course</h3>
@@ -41,57 +44,121 @@
                             </form>
                         </div>
                     </div>
-                <% } %>
+                    <% } %>
 
-                <div class="col-12">
-                    <div class="card">
-                        <h3 class="card-title">Existing Courses</h3>
-                        <% if (courses && courses.length> 0) { %>
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Course Name</th>
-                                        <th>Levels</th>
-                                        <th>Assigned Teachers</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <% courses.forEach(course=> { %>
-                                        <tr>
-                                            <td><%= course.id %></td>
-                                            <td>
-                                                <% if (user.role === 'admin') { %>
-                                                    <a href="/course/<%= course.id %>/manage" style="text-decoration:none; color: inherit; font-weight: 700;">
-                                                        <%= course.course_name %>
-                                                    </a>
-                                                <% } else { %>
-                                                    <span style="font-weight: 700;"><%= course.course_name %></span>
+                        <% if (pendingApprovals && pendingApprovals.length> 0) { %>
+                            <div class="col-12">
+                                <div class="card" style="border-left: 4px solid #e67e22;">
+                                    <h3 class="card-title">Pending Course Requests</h3>
+                                    <p style="margin-bottom: 16px; opacity: 0.8;">The following teachers have requested
+                                        to manage additional courses.</p>
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Teacher</th>
+                                                <th>Requested Course</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% pendingApprovals.forEach(req=> { %>
+                                                <tr>
+                                                    <td><strong>
+                                                            <%= req.username %>
+                                                        </strong></td>
+                                                    <td>
+                                                        <%= req.course_name %>
+                                                    </td>
+                                                    <td>
+                                                        <div style="display: flex; gap: 8px;">
+                                                            <form action="/coordinator/approve-course-request"
+                                                                method="POST" style="margin:0;">
+                                                                <input type="hidden" name="teacher_id"
+                                                                    value="<%= req.teacher_id %>">
+                                                                <input type="hidden" name="course_id"
+                                                                    value="<%= req.course_id %>">
+                                                                <button type="submit" class="btn"
+                                                                    style="padding: 4px 12px; font-size: 12px;">Approve</button>
+                                                            </form>
+                                                            <form action="/coordinator/reject-course-request"
+                                                                method="POST" style="margin:0;">
+                                                                <input type="hidden" name="teacher_id"
+                                                                    value="<%= req.teacher_id %>">
+                                                                <input type="hidden" name="course_id"
+                                                                    value="<%= req.course_id %>">
+                                                                <button type="submit" class="btn btn-danger"
+                                                                    style="padding: 4px 12px; font-size: 12px;">Reject</button>
+                                                            </form>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <% }) %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <% } %>
+
+                                <div class="col-12">
+                                    <div class="card">
+                                        <h3 class="card-title">Existing Courses</h3>
+                                        <% if (courses && courses.length> 0) { %>
+                                            <table class="table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>ID</th>
+                                                        <th>Course Name</th>
+                                                        <th>Levels</th>
+                                                        <th>Assigned Teachers</th>
+                                                        <th>Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <% courses.forEach(course=> { %>
+                                                        <tr>
+                                                            <td>
+                                                                <%= course.id %>
+                                                            </td>
+                                                            <td>
+                                                                <% if (user.role==='admin' ) { %>
+                                                                    <a href="/course/<%= course.id %>/manage"
+                                                                        style="text-decoration:none; color: inherit; font-weight: 700;">
+                                                                        <%= course.course_name %>
+                                                                    </a>
+                                                                    <% } else { %>
+                                                                        <span style="font-weight: 700;">
+                                                                            <%= course.course_name %>
+                                                                        </span>
+                                                                        <% } %>
+                                                            </td>
+                                                            <td>
+                                                                <%= course.levels %>
+                                                            </td>
+                                                            <td>
+                                                                <%= course.teachers ? course.teachers : 'None' %>
+                                                            </td>
+                                                            <td>
+                                                                <% if (user.role==='admin' ) { %>
+                                                                    <form action="/admin/delete-course" method="POST"
+                                                                        onsubmit="return confirm('Are you sure you want to delete this course? All questions, results, and teacher assignments related to it will also be deleted.');">
+                                                                        <input type="hidden" name="course_id"
+                                                                            value="<%= course.id %>">
+                                                                        <button type="submit"
+                                                                            class="btn btn-danger">Delete</button>
+                                                                    </form>
+                                                                    <% } else { %>
+                                                                        <span style="opacity: 0.7;">—</span>
+                                                                        <% } %>
+                                                            </td>
+                                                        </tr>
+                                                        <% }) %>
+                                                </tbody>
+                                            </table>
+                                            <% } else { %>
+                                                <div style="opacity: 0.8;">No courses available right now.</div>
                                                 <% } %>
-                                            </td>
-                                            <td><%= course.levels %></td>
-                                            <td><%= course.teachers ? course.teachers : 'None' %></td>
-                                            <td>
-                                                <% if (user.role === 'admin') { %>
-                                                    <form action="/admin/delete-course" method="POST"
-                                                        onsubmit="return confirm('Are you sure you want to delete this course? All questions, results, and teacher assignments related to it will also be deleted.');">
-                                                        <input type="hidden" name="course_id" value="<%= course.id %>">
-                                                        <button type="submit" class="btn btn-danger">Delete</button>
-                                                    </form>
-                                                <% } else { %>
-                                                    <span style="opacity: 0.7;">—</span>
-                                                <% } %>
-                                            </td>
-                                        </tr>
-                                    <% }) %>
-                                </tbody>
-                            </table>
-                        <% } else { %>
-                            <div style="opacity: 0.8;">No courses available right now.</div>
-                        <% } %>
-                    </div>
-                </div>
+                                    </div>
+                                </div>
             </div>
         </div>
     </div>

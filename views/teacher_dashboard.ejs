@@ -28,28 +28,67 @@
         <div class="grid">
           <div class="col-12">
             <div class="card" style="padding: 22px;">
-              <div style="display:flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+              <div
+                style="display:flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
                 <h3 class="card-title" style="margin: 0;">Your Courses</h3>
-                <div style="opacity: 0.75; font-weight: 800;">Total: <%= (courses || []).length %></div>
+                <div style="display: flex; align-items: center; gap: 16px;">
+                  <div style="opacity: 0.75; font-weight: 800;">Total: <%= (courses || []).length %>
+                  </div>
+                  <a href="/teacher/request-course" class="btn btn-secondary"
+                    style="padding: 6px 14px; font-size: 13px;">Request New Course</a>
+                </div>
               </div>
 
               <div class="grid" style="margin-top: 16px;">
                 <% (courses || []).forEach(c=> { %>
                   <div class="col-6">
-                    <div class="card" style="margin:0; padding: 18px 18px 16px; height: 100%; box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06); display:flex; flex-direction: column; justify-content: space-between;">
+                    <div class="card"
+                      style="margin:0; padding: 18px 18px 16px; height: 100%; box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06); display:flex; flex-direction: column; justify-content: space-between;">
                       <div>
-                        <div style="font-weight: 900; font-size: 18px; letter-spacing: 0.2px; margin-bottom: 10px; text-align:center;"><%= c.course_name %></div>
+                        <div
+                          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                          <div style="font-weight: 900; font-size: 18px; letter-spacing: 0.2px;">
+                            <%= c.course_name %>
+                          </div>
+                          <% if (c.request_status==='pending' ) { %>
+                            <span class="badge" style="background: rgba(230, 126, 34, 0.12); color: #e67e22;">Pending
+                              Approval</span>
+                            <% } else if (c.request_status==='rejected' ) { %>
+                              <span class="badge"
+                                style="background: rgba(235, 87, 87, 0.12); color: #eb5757;">Rejected</span>
+                              <% } else { %>
+                                <span class="badge"
+                                  style="background: rgba(39, 174, 96, 0.12); color: #27ae60;">Approved</span>
+                                <% } %>
+                        </div>
                         <div style="height: 1px; background: rgba(15, 23, 42, 0.08); margin: 10px 0 14px;"></div>
-                        <div style="opacity: 0.8; text-align:center;">Use the actions below to manage and review this course.</div>
+                        <div style="opacity: 0.8; text-align:center;">
+                          <% if (c.request_status==='pending' ) { %>
+                            This request is waiting for coordinator approval.
+                            <% } else if (c.request_status==='rejected' ) { %>
+                              Your request to manage this course was not approved.
+                              <% } else { %>
+                                Use the actions below to manage and review this course.
+                                <% } %>
+                        </div>
                       </div>
 
                       <div style="margin-top: 16px; display:flex; gap: 12px; justify-content: center;">
-                        <a class="btn" href="/course/<%= c.id %>/manage" style="min-width: 140px; text-align:center; padding: 10px 16px;">Manage</a>
-                        <a class="btn btn-secondary" href="/view-results?course_id=<%= c.id %>" style="min-width: 140px; text-align:center; padding: 10px 16px;">Results</a>
+                        <% if (c.request_status==='approved' ) { %>
+                          <a class="btn" href="/course/<%= c.id %>/manage"
+                            style="min-width: 140px; text-align:center; padding: 10px 16px;">Manage</a>
+                          <a class="btn btn-secondary" href="/view-results?course_id=<%= c.id %>"
+                            style="min-width: 140px; text-align:center; padding: 10px 16px;">Results</a>
+                          <% } else { %>
+                            <button class="btn" disabled
+                              style="min-width: 140px; opacity: 0.5; cursor: not-allowed; padding: 10px 16px;">Manage</button>
+                            <button class="btn btn-secondary" disabled
+                              style="min-width: 140px; opacity: 0.5; cursor: not-allowed; padding: 10px 16px;">Results</button>
+                            <% } %>
                       </div>
                     </div>
                   </div>
-                <% }) %>
+                  <% }) %>
               </div>
             </div>
           </div>

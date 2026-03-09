@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Request Course</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+    <div class="app-shell">
+        <div class="topbar">
+            <div class="topbar-inner">
+                <a class="brand" href="/teacher-dashboard">Secure Exam</a>
+                <div class="nav-group">
+                    <a class="btn btn-ghost" href="/teacher-dashboard">Dashboard</a>
+                    <a class="btn btn-danger" href="/logout">Logout</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="card" style="max-width: 520px; margin: 24px auto;">
+                <h1 class="page-title" style="text-align:center;">Request a New Course</h1>
+                <p class="page-subtitle" style="text-align:center;">Select a course you would like to manage. Your
+                    request will be sent to the Academic Coordinator for approval.</p>
+
+                <% if (courses && courses.length> 0) { %>
+                    <form action="/teacher/request-course" method="POST" class="stack">
+                        <div>
+                            <label><strong>Select Course</strong></label>
+                            <select class="field" name="course_id" required>
+                                <option value="" disabled selected>-- Select a Course --</option>
+                                <% courses.forEach(c=> { %>
+                                    <option value="<%= c.id %>">
+                                        <%= c.course_name %>
+                                    </option>
+                                    <% }) %>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn" style="width:100%;">Submit Request</button>
+                    </form>
+                    <% } else { %>
+                        <div class="alert alert-info" style="text-align: center;">
+                            You have already requested or been assigned all available courses.
+                        </div>
+                        <div style="text-align: center; margin-top: 16px;">
+                            <a href="/teacher-dashboard" class="btn btn-secondary">Back to Dashboard</a>
+                        </div>
+                        <% } %>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
