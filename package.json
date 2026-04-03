@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -13,9 +14,11 @@
     "@google/generative-ai": "^0.24.1",
     "bcrypt": "^6.0.0",
     "body-parser": "^2.2.2",
+    "compression": "^1.8.1",
     "ejs": "^4.0.1",
     "express": "^5.2.1",
     "express-session": "^1.19.0",
-    "mysql2": "^3.16.3"
+    "mysql2": "^3.20.0",
+    "pg": "^8.20.0"
   }
 }

@@ -12,6 +12,8 @@
   --primary-hover: #4A6572;
   --danger: #D65A5A;
   --danger-hover: #C94C4C;
+  --success: #27AE60;
+  --success-hover: #219150;
   --shadow: 0 10px 24px rgba(74, 101, 114, 0.10);
 }
 
@@ -175,12 +177,16 @@ body {
   color: var(--text);
 }
 
-.btn-danger {
-  background: var(--danger);
-}
-
 .btn-danger:hover {
   background: var(--danger-hover);
+}
+
+.btn-success {
+  background: var(--success);
+}
+
+.btn-success:hover {
+  background: var(--success-hover);
 }
 
 .btn-ghost {

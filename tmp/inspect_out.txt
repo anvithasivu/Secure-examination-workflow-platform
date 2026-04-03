@@ -1,0 +1,17 @@
+=== MySQL ===
+users: 12
+courses: 4
+course_levels: 24
+teacher_courses: 5
+questions: 2420
+results: 7
+password_reset_requests: 6
+
+=== PostgreSQL ===
+users: 2
+courses: 4
+course_levels: 0
+teacher_courses: 0
+questions: 1600
+results: 0
+password_reset_requests: 0

@@ -80,12 +80,22 @@
       return { total: qs.length, answered, unanswered: Math.max(0, qs.length - answered) };
     }
 
-    function forceSubmit(reason) {
+    async function forceSubmit(reason) {
+      // Exit full screen if active
+      if (document.fullscreenElement) {
+        try { await document.exitFullscreen(); } catch (e) {}
+      }
+
       const banner = document.getElementById('autoSubmitBanner');
       if (banner) {
         banner.innerText = reason;
         banner.style.display = 'block';
       }
+
+      // Show submission overlay
+      const overlay = document.getElementById('submitOverlay');
+      if (overlay) overlay.style.display = 'flex';
+
       const form = document.getElementById('examForm');
       if (form) form.submit();
     }
@@ -227,10 +237,16 @@
     .exam-locked body { overflow: hidden; }
     .exam-locked .app-shell { pointer-events: none; user-select: none; }
     .exam-locked #fsGate { pointer-events: auto; }
+    .submit-overlay { position: fixed; inset: 0; background: var(--surface); z-index: 1000; display:none; flex-direction: column; align-items:center; justify-content:center; text-align:center; padding: 24px; }
   </style>
 </head>
 
 <body>
+  <div id="submitOverlay" class="submit-overlay">
+    <div style="font-size: 24px; font-weight: 900; margin-bottom: 12px;">Submitting Exam...</div>
+    <div style="opacity: 0.7; font-weight: 800;">Please wait while we calculate your results.</div>
+  </div>
+
   <div id="fsGate" class="fs-gate">
     <div class="card">
       <div style="font-weight: 900; font-size: 16px;">Full Screen Required</div>

@@ -1,0 +1,30 @@
+Connected to both databases!
+Added course_id to users schema in pg.
+Truncated password_reset_requests CASCADE
+Truncated results CASCADE
+Truncated questions CASCADE
+Truncated teacher_courses CASCADE
+Truncated course_levels CASCADE
+Truncated courses CASCADE
+Truncated users CASCADE
+Migrating 12 rows for table: users...
+Migrated 12/12 rows for users successfully.
+Reset sequence for users.
+Migrating 4 rows for table: courses...
+Migrated 4/4 rows for courses successfully.
+Reset sequence for courses.
+Migrating 24 rows for table: course_levels...
+Migrated 24/24 rows for course_levels successfully.
+Reset sequence for course_levels.
+Migrating 5 rows for table: teacher_courses...
+Migrated 5/5 rows for teacher_courses successfully.
+Migrating 2420 rows for table: questions...
+Migrated 2420/2420 rows for questions successfully.
+Reset sequence for questions.
+Migrating 7 rows for table: results...
+Migrated 7/7 rows for results successfully.
+Reset sequence for results.
+Migrating 6 rows for table: password_reset_requests...
+Migrated 6/6 rows for password_reset_requests successfully.
+Reset sequence for password_reset_requests.
+Entire Database Migration Completed!

@@ -1,5 +1,5 @@
 const express = require("express");
-const mysql = require("mysql2");
+const { Pool } = require("pg");
 const session = require("express-session");
 const bcrypt = require("bcrypt");
 
@@ -26,26 +26,74 @@ app.use(express.static("public"));
 app.set("view engine", "ejs");
 
 app.use(session({
-  secret: "secureexamkey",
+  secret: process.env.SESSION_SECRET || "secureexamkey",
   resave: false,
   saveUninitialized: true
 }));
 
-// MySQL Connection
-const db = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "anvisivu07",
-  database: "secure_exam"
+// PostgreSQL Connection Compatibility Wrapper
+const connectionUri = process.env.DATABASE_URL || "postgresql://anvitha:mxS8KEtLqG8uBLIWPM39nQDS3r6OMbd5@dpg-d77m2hp5pdvs739cctd0-a.oregon-postgres.render.com/secureexaminationworkflow";
+
+const pool = new Pool({ 
+  connectionString: connectionUri, 
+  ssl: { rejectUnauthorized: false } 
 });
 
-db.connect(err => {
+const db = {
+  query: (sql, params, cb) => {
+    if (typeof params === 'function') {
+      cb = params;
+      params = [];
+    }
+    
+    // Convert MySQL "?" placeholders to PostgreSQL "$1, $2, ..."
+    let i = 1;
+    let pgSql = sql.replace(/\?/g, () => `$${i++}`);
+    
+    // Postgres compatibility maps
+    pgSql = pgSql.replace(/\bRAND\(\)/gi, 'RANDOM()');
+    
+    // Simulate mysql's insertId by appending RETURNING id (best effort)
+    const isInsert = pgSql.trim().toUpperCase().startsWith('INSERT');
+    if (isInsert && !pgSql.toUpperCase().includes('RETURNING')) {
+      pgSql += ' RETURNING id';
+    }
+
+    pool.query(pgSql, params, (err, res) => {
+      if (err) {
+        // Mock MySQL's specific error code for duplicates
+        if (err.code === '23505') {
+           err.code = 'ER_DUP_ENTRY';
+        }
+        return cb(err);
+      }
+      
+      if (res.command === 'SELECT') {
+        cb(null, res.rows);
+      } else {
+        // Replicate MySQL's insert/update result object
+        const resultObj = {
+          affectedRows: res.rowCount,
+          insertId: res.rows.length ? res.rows[0].id : null
+        };
+        cb(null, resultObj);
+      }
+    });
+  }
+};
+
+pool.connect((err, client, release) => {
   if (err) {
     console.error("DB connection failed:", err.message);
     process.exit(1);
   }
-  console.log("Connected to MySQL DB");
-  app.listen(3000, () => console.log("Server running on http://localhost:3000"));
+  release();
+  console.log("Connected to PostgreSQL DB");
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+    console.log(`Access local environment at http://localhost:${PORT}`);
+  });
 });
 
 // ----------------------
@@ -424,9 +472,10 @@ app.post("/coordinator/add-teacher", requireRole("academic_coordinator"), (req, 
       const teacher_id = result.insertId;
 
       if (courses_to_assign.length > 0) {
-        // Prepare values for bulk insert
-        const values = courses_to_assign.map(cid => [teacher_id, cid, 'approved']);
-        db.query("INSERT INTO teacher_courses (teacher_id, course_id, status) VALUES ?", [values], err2 => {
+        // Prepare values for bulk insert using standard parameterized approach
+        const valuePlaceholders = courses_to_assign.map(() => "(?, ?, 'approved')").join(", ");
+        const params = courses_to_assign.flatMap(cid => [teacher_id, cid]);
+        db.query(`INSERT INTO teacher_courses (teacher_id, course_id, status) VALUES ${valuePlaceholders}`, params, err2 => {
           if (err2) throw err2;
           res.redirect("/coordinator/manage-users");
         });
@@ -771,7 +820,7 @@ app.get("/teacher/pending", (req, res) => {
 
 app.get("/teacher-dashboard", (req, res) => {
   if (!req.session.user || req.session.user.role !== "teacher") return res.redirect("/");
-  db.query("SELECT courses.*, teacher_courses.status as request_status FROM courses JOIN teacher_courses ON courses.id = teacher_courses.course_id WHERE teacher_courses.teacher_id = ?", [req.session.user.id], (err, courses) => {
+  db.query("SELECT courses.*, teacher_courses.status as request_status FROM courses JOIN teacher_courses ON courses.id = teacher_courses.course_id WHERE teacher_courses.teacher_id = ? AND teacher_courses.status != 'rejected'", [req.session.user.id], (err, courses) => {
     if (err) throw err;
     res.render("teacher_dashboard", { user: req.session.user, courses });
   });
@@ -779,9 +828,9 @@ app.get("/teacher-dashboard", (req, res) => {
 
 app.get("/teacher/request-course", requireRole("teacher"), (req, res) => {
   const teacherId = req.session.user.id;
-  // Fetch courses not already assigned or requested by this teacher
+  // Fetch courses not already assigned or requested by this teacher (allow re-requesting rejected)
   db.query(
-    "SELECT * FROM courses WHERE id NOT IN (SELECT course_id FROM teacher_courses WHERE teacher_id = ?)",
+    "SELECT * FROM courses WHERE id NOT IN (SELECT course_id FROM teacher_courses WHERE teacher_id = ? AND status != 'rejected')",
     [teacherId],
     (err, courses) => {
       if (err) throw err;
@@ -794,7 +843,7 @@ app.post("/teacher/request-course", requireRole("teacher"), (req, res) => {
   const { course_id } = req.body;
   const teacherId = req.session.user.id;
   db.query(
-    "INSERT INTO teacher_courses (teacher_id, course_id, status) VALUES (?, ?, 'pending')",
+    "INSERT INTO teacher_courses (teacher_id, course_id, status) VALUES (?, ?, 'pending') ON CONFLICT (teacher_id, course_id) DO UPDATE SET status = 'pending'",
     [teacherId, course_id],
     (err) => {
       if (err) throw err;
@@ -985,7 +1034,7 @@ app.post("/submit-exam", (req, res) => {
       return res.send("No questions answered.");
     }
 
-    db.query("SELECT * FROM questions WHERE id IN (?)", [questionIds], (err, questions) => {
+    db.query("SELECT * FROM questions WHERE id = ANY(?)", [questionIds], (err, questions) => {
       if (err) throw err;
 
       const totalQuestions = questions.length;
@@ -1006,8 +1055,8 @@ app.post("/submit-exam", (req, res) => {
 
       const attemptedCount = correctCount + wrongCount;
       const marksObtained = correctCount - (wrongCount * negativePerWrong);
-      const maxMarks = totalQuestions;
-      const marksPercentage = maxMarks > 0 ? (marksObtained / maxMarks) * 100 : 0;
+      const maxMarksFixed = 40; 
+      const marksPercentage = (marksObtained / maxMarksFixed) * 100;
       const marksPercentageRounded = Number(marksPercentage.toFixed(2));
 
       // Pass/Fail based on the same marks-based percentage shown on the result page
@@ -1018,12 +1067,12 @@ app.post("/submit-exam", (req, res) => {
         if (existing.length > 0) {
           db.query("UPDATE results SET score=?, attempts=attempts+1, pass_fail=? WHERE user_id=? AND course_id=? AND level=?", [marksPercentageRounded, pass_fail, user_id, course_id, level], err => {
             if (err) throw err;
-            res.redirect(`/exam-result/${existing[0].id}?total=${encodeURIComponent(totalQuestions)}&correct=${encodeURIComponent(correctCount)}&wrong=${encodeURIComponent(wrongCount)}&marks=${encodeURIComponent(marksObtained.toFixed(2))}&max=${encodeURIComponent(maxMarks)}&percentage=${encodeURIComponent(marksPercentageRounded.toFixed(2))}`);
+            res.redirect(`/exam-result/${existing[0].id}?total=40&correct=${encodeURIComponent(correctCount)}&wrong=${encodeURIComponent(wrongCount)}&marks=${encodeURIComponent(marksObtained.toFixed(2))}&max=40&percentage=${encodeURIComponent(marksPercentageRounded.toFixed(2))}`);
           });
         } else {
           db.query("INSERT INTO results (user_id, course_id, level, score, attempts, pass_fail) VALUES (?,?,?,?,?,?)", [user_id, course_id, level, marksPercentageRounded, 1, pass_fail], (err, result) => {
             if (err) throw err;
-            res.redirect(`/exam-result/${result.insertId}?total=${encodeURIComponent(totalQuestions)}&correct=${encodeURIComponent(correctCount)}&wrong=${encodeURIComponent(wrongCount)}&marks=${encodeURIComponent(marksObtained.toFixed(2))}&max=${encodeURIComponent(maxMarks)}&percentage=${encodeURIComponent(marksPercentageRounded.toFixed(2))}`);
+            res.redirect(`/exam-result/${result.insertId}?total=40&correct=${encodeURIComponent(correctCount)}&wrong=${encodeURIComponent(wrongCount)}&marks=${encodeURIComponent(marksObtained.toFixed(2))}&max=40&percentage=${encodeURIComponent(marksPercentageRounded.toFixed(2))}`);
           });
         }
       });
